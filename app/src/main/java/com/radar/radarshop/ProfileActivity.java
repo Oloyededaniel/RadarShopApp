@@ -1,8 +1,10 @@
 package com.radar.radarshop;
 
 import android.content.Intent;
+import android.nfc.Tag;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -36,7 +38,9 @@ public class ProfileActivity extends AppCompatActivity {
         try {
             setContentView(R.layout.activity_profile);
         } catch (Throwable t) {
-            Toast.makeText(this, t.getMessage(), Toast.LENGTH_LONG).show();
+            String tString = t.getMessage();
+            Log.e("Profile activity", "unable to open profile activity: " + tString);
+            Toast.makeText(this, tString, Toast.LENGTH_LONG).show();
             finish();
             return;
         }

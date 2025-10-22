@@ -44,17 +44,18 @@
             android:id="@+id/cbRemember"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Remember me"
-            android:layout_weight="0"/>
+            android:layout_weight="1"
+            android:text="Remember me" />
 
         <TextView
             android:id="@+id/tvForgot"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="right"
             android:text="Forgot password?"
             android:textColor="@color/brand_primary"
-            android:textStyle="bold"
-            android:layout_weight="1"/>
+            android:textStyle="bold" />
     </LinearLayout>
 
     <com.google.android.material.button.MaterialButton
