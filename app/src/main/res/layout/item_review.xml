@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="12dp"
+    android:background="@android:color/white"
+    android:layout_marginBottom="8dp">
+
+    <TextView
+        android:id="@+id/textReviewerEmail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="email@example.com"
+        android:textStyle="bold"
+        android:textColor="#000000"
+        android:textSize="14sp" />
+
+    <RatingBar
+        android:id="@+id/reviewRatingBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:numStars="5"
+        android:stepSize="1.0"
+        android:isIndicator="true"
+        android:layout_marginTop="4dp" />
+
+    <TextView
+        android:id="@+id/textReviewComment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="This is a review comment."
+        android:textSize="14sp"
+        android:textColor="#333333"
+        android:layout_marginTop="4dp" />
+</LinearLayout>

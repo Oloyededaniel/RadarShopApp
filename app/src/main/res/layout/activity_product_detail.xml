@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Product name -->
+    <TextView
+        android:id="@+id/textProductName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Product Name"
+        android:textStyle="bold"
+        android:textSize="20sp"
+        android:paddingBottom="8dp" />
+
+    <!-- Category -->
+    <TextView
+        android:id="@+id/textProductCategory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Category"
+        android:textStyle="italic"
+        android:paddingBottom="8dp" />
+
+    <!-- Price -->
+    <TextView
+        android:id="@+id/textProductPrice"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="$0.00"
+        android:textColor="#FF5722"
+        android:textSize="18sp"
+        android:paddingBottom="8dp" />
+
+    <!-- Description -->
+    <TextView
+        android:id="@+id/textProductDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Product Description"
+        android:paddingBottom="16dp" />
+
+    <!-- Actions -->
+    <Button
+        android:id="@+id/buttonAddToWishlist"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Add to Wishlist"
+        android:padding="12dp"
+        android:textColor="@android:color/white"
+        app:backgroundTint="?attr/colorPrimary"
+        android:layout_marginBottom="8dp" />
+
+    <Button
+        android:id="@+id/buttonViewWishlist"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="View Wishlist"
+        android:padding="12dp"
+        android:textColor="@android:color/white"
+        app:backgroundTint="?attr/colorPrimaryVariant"
+        android:layout_marginBottom="8dp" />
+
+    <Button
+        android:id="@+id/buttonAddReview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Add Review"
+        android:padding="12dp"
+        android:textColor="@android:color/white"
+        app:backgroundTint="?attr/colorSecondary"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Reviews list -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/listReviews"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+</LinearLayout>

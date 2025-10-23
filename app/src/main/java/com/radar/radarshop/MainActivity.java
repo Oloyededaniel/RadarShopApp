@@ -1,44 +1,139 @@
 package com.radar.radarshop;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.View;
-import android.widget.ImageView;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.SeekBar;
+import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final long SPLASH_DURATION_MS = 2000; //2secs
+    private DatabaseHelper dbHelper;
+    private Spinner spinnerCategory;
+    private EditText editTextSearch;
+    private SeekBar seekBarMin, seekBarMax;
+    private TextView textMinPrice, textMaxPrice;
+    private ListView listViewProducts;
+    private Button buttonViewWishlist, buttonSearch;
+    private ProductAdapter productAdapter;
+
+    private static final int PRICE_MAX_DEFAULT = 2000; // > 999 seed
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main); // splash screen layout:contentReference[oaicite:2]{index=2}
+        setContentView(R.layout.activity_main);
 
-        ImageView imgLogo = findViewById(R.id.imgLogo);     // alpha=0 in XML
-        TextView tvName   = findViewById(R.id.tvAppName);   // alpha=0
-        View progress     = findViewById(R.id.progress);    // alpha=0
+        dbHelper = new DatabaseHelper(this);
+        dbHelper.ensureSeedProducts(12);   // top up demo data BEFORE loading the list
 
-        // Fade in the three elements
-        if (imgLogo != null) imgLogo.animate().alpha(1f).setDuration(350).start();
-        if (tvName != null)   tvName.animate().alpha(1f).setStartDelay(200).setDuration(350).start();
-        if (progress != null) progress.animate().alpha(1f).setStartDelay(400).setDuration(250).start();
+        // UI
+        spinnerCategory   = findViewById(R.id.spinnerCategory);
+        editTextSearch    = findViewById(R.id.editTextSearch);
+        seekBarMin        = findViewById(R.id.seekBarMin);
+        seekBarMax        = findViewById(R.id.seekBarMax);
+        textMinPrice      = findViewById(R.id.textMinPrice);
+        textMaxPrice      = findViewById(R.id.textMaxPrice);
+        listViewProducts  = findViewById(R.id.listViewProducts);
+        buttonViewWishlist= findViewById(R.id.buttonViewWishlist);
+        buttonSearch      = findViewById(R.id.buttonSearch);
 
-        // After a short delay, decide where to go
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            SessionManager session = new SessionManager(this);
-            Intent next = session.isLoggedIn()
-                    ? new Intent(this, HomeActivity.class)
-                    : new Intent(this, AuthActivity.class);
-            // clear splash from back stack
-            next.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(next);
-            // no finish() needed because we cleared the task
-        }, SPLASH_DURATION_MS);
+        // Categories
+        List<String> categories = new ArrayList<>();
+        categories.add("All");
+        categories.addAll(dbHelper.getAllCategories());
+        ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, categories);
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerCategory.setAdapter(spinnerAdapter);
+        spinnerCategory.setSelection(0);
+
+        // Price sliders
+        seekBarMin.setMax(PRICE_MAX_DEFAULT);
+        seekBarMax.setMax(PRICE_MAX_DEFAULT);
+        seekBarMin.setProgress(0);
+        seekBarMax.setProgress(PRICE_MAX_DEFAULT);
+        textMinPrice.setText("Min: 0");
+        textMaxPrice.setText("Max: " + PRICE_MAX_DEFAULT);
+
+        seekBarMin.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                textMinPrice.setText("Min: " + progress);
+            }
+            @Override public void onStartTrackingTouch(SeekBar seekBar) {}
+            @Override public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+        seekBarMax.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                textMaxPrice.setText("Max: " + progress);
+            }
+            @Override public void onStartTrackingTouch(SeekBar seekBar) {}
+            @Override public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+
+        // Optional: prefill search
+        String initial = getIntent().getStringExtra("initial_query");
+        if (initial != null && !initial.trim().isEmpty()) {
+            editTextSearch.setText(initial.trim());
+        }
+
+        // Actions
+        buttonSearch.setOnClickListener(v -> applyFilters());
+        buttonViewWishlist.setOnClickListener(v ->
+                startActivity(new Intent(MainActivity.this, WishlistActivity.class))
+        );
+
+        listViewProducts.setOnItemClickListener((parent, view, position, id) -> {
+            Product selectedProduct = (Product) parent.getItemAtPosition(position);
+            Intent intent = new Intent(MainActivity.this, ProductDetailActivity.class);
+            intent.putExtra("product", selectedProduct);
+            intent.putExtra("productId", selectedProduct.getId());
+            startActivity(intent);
+        });
+
+        // First load
+        applyFilters();
+
+        // Re-apply when category changes
+        spinnerCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                applyFilters();
+            }
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
+        });
+    }
+
+    private void applyFilters() {
+        String selectedCategory = spinnerCategory.getSelectedItem() == null
+                ? "All" : spinnerCategory.getSelectedItem().toString();
+        String searchQuery = editTextSearch.getText().toString().trim();
+
+        int min = seekBarMin.getProgress();
+        int max = seekBarMax.getProgress();
+        if (max < min) { int t = min; min = max; max = t; }
+
+        List<Product> products = dbHelper.getFilteredProducts(selectedCategory, searchQuery, min, max);
+
+        if (productAdapter == null) {
+            productAdapter = new ProductAdapter(this, products);
+            listViewProducts.setAdapter(productAdapter);
+        } else {
+            productAdapter.updateProducts(products);
+        }
+
+        // (Optional) quick sanity
+        // Toast.makeText(this, "Found " + products.size() + " products", Toast.LENGTH_SHORT).show();
     }
 }

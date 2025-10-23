@@ -1,46 +1,86 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:gravity="center"
     android:orientation="vertical"
-    android:background="@color/brand_subtle_bg"
-    android:padding="24dp">
+    android:padding="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
-    <!-- App logo -->
-    <ImageView
-        android:id="@+id/imgLogo"
-        android:layout_width="140dp"
-        android:layout_height="140dp"
-        android:src="@drawable/radarshop_logo"
-        android:contentDescription="@string/app_name"
-        android:scaleType="centerCrop"
-        android:background="@drawable/circle_mask"
-        android:clipToOutline="true"
-        android:layout_marginBottom="16dp"
-        android:alpha="0"/>
+    <!-- Search + button -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical">
 
+        <EditText
+            android:id="@+id/editTextSearch"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Search products"
+            android:imeOptions="actionSearch"/>
 
-    <!-- App name -->
+        <Button
+            android:id="@+id/buttonSearch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Search"/>
+    </LinearLayout>
+
+    <!-- Category -->
+    <Spinner
+        android:id="@+id/spinnerCategory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"/>
+
+    <!-- Price range -->
     <TextView
-        android:id="@+id/tvAppName"
+        android:id="@+id/textMinPrice"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="RADARSHOP"
-        android:textStyle="bold"
-        android:textSize="26sp"
-        android:textColor="@color/brand_primary"
-        android:alpha="0"/>
+        android:text="Min: 0"
+        android:layout_marginTop="8dp"/>
 
-    <!-- Progress indicator -->
-    <com.google.android.material.progressindicator.CircularProgressIndicator
-        android:id="@+id/progress"
-        style="@style/Widget.Material3.CircularProgressIndicator.Medium"
+    <SeekBar
+        android:id="@+id/seekBarMin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:id="@+id/textMaxPrice"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="28dp"
-        android:indeterminate="true"
-        app:indicatorSize="36dp"
-        android:alpha="0"/>
+        android:text="Max: 2000"
+        android:layout_marginTop="8dp"/>
+
+    <SeekBar
+        android:id="@+id/seekBarMax"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <!-- Wishlist shortcut -->
+    <Button
+        android:id="@+id/buttonViewWishlist"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="View Wishlist"
+        android:layout_marginTop="8dp"/>
+
+    <!-- The product list -->
+    <ListView
+        android:id="@+id/listViewProducts"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:dividerHeight="8dp"/>
+
+    <!-- Empty state -->
+    <TextView
+        android:id="@+id/emptyView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="No products match your filters."
+        android:gravity="center"
+        android:padding="24dp"
+        android:visibility="gone"/>
 </LinearLayout>

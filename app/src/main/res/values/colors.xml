@@ -2,13 +2,13 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- UI palette used in activity_home.xml -->
     <color name="text_muted">#6B7280</color>
     <color name="bgPage">#FFF7F7FA</color>
     <color name="topStrip">#0E0E18</color>
-
     <color name="txtPrimary">#1C1C1E</color>
     <color name="txtMuted">#7A7A8C</color>
-
     <color name="promoRed">#F04D4D</color>
     <color name="promoBlue">#4D74FF</color>
     <color name="promoGreen">#43C06B</color>
@@ -16,4 +16,9 @@
     <color name="brand_subtle_bg">#F8F9FB</color>
     <color name="brand_dark">#1B263B</color>
 
+    <!-- Material color refs used by Theme.RadarShop -->
+    <color name="purple_500">#6200EE</color>
+    <color name="purple_700">#3700B3</color>
+    <color name="teal_200">#03DAC5</color>
+    <color name="teal_700">#018786</color>
 </resources>
