@@ -45,6 +45,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COL_WISH_EMAIL = "user_email";
     public static final String COL_WISH_PRODUCT_ID = "product_id";
 
+    // Cart
+    public static final String TABLE_CART = "cart";
+    public static final String COL_CART_ID = "id";
+    public static final String COL_CART_EMAIL = "user_email";
+    public static final String COL_CART_PRODUCT_ID = "product_id";
+    public static final String COL_CART_QUANTITY = "quantity";
+
     // Reviews
     public static final String TABLE_REVIEWS = "reviews";
     public static final String COL_REVIEW_ID = "id";
