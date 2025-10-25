@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/splash_background">
+
+    <!-- Animated background gradient -->
+    <View
+        android:id="@+id/backgroundView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/splash_gradient" />
+
+    <!-- Pulse effect view -->
+    <View
+        android:id="@+id/pulseView"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_centerInParent="true"
+        android:background="@drawable/pulse_circle"
+        android:alpha="0" />
+
+    <!-- Main content container -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="32dp">
+
+        <!-- Logo with circular mask -->
+        <ImageView
+            android:id="@+id/logoImageView"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@drawable/radarshop_logo"
+            android:background="@drawable/circle_mask"
+            android:clipToOutline="true"
+            android:scaleType="centerCrop"
+            android:contentDescription="RadarShop Logo"
+            android:elevation="8dp" />
+
+        <!-- Brand name with modern typography -->
+        <TextView
+            android:id="@+id/brandTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="RADARSHOP"
+            android:textColor="@color/brand_primary"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.1"
+            android:layout_marginTop="24dp"
+            android:fontFamily="sans-serif-medium"
+            android:elevation="4dp" />
+
+        <!-- Tagline with subtle animation -->
+        <TextView
+            android:id="@+id/taglineTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Your Ultimate Shopping Experience"
+            android:textColor="@color/text_muted"
+            android:textSize="16sp"
+            android:layout_marginTop="8dp"
+            android:fontFamily="sans-serif-light"
+            android:alpha="0.8" />
+
+        <!-- Loading indicator -->
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/loadingIndicator"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginTop="32dp"
+            android:indeterminate="true"
+            app:indicatorColor="@color/brand_primary"
+            app:trackColor="@color/brand_subtle_bg"
+            android:alpha="0" />
+
+    </LinearLayout>
+
+    <!-- Decorative elements -->
+    <View
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="-100dp"
+        android:layout_marginEnd="-100dp"
+        android:background="@drawable/decorative_circle_1" />
+
+    <View
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginBottom="-75dp"
+        android:layout_marginStart="-75dp"
+        android:background="@drawable/decorative_circle_2" />
+
+    <!-- Floating particles effect -->
+    <ImageView
+        android:id="@+id/particle1"
+        android:layout_width="8dp"
+        android:layout_height="8dp"
+        android:layout_marginTop="200dp"
+        android:layout_marginStart="50dp"
+        android:src="@drawable/particle_dot"
+        android:alpha="0.6" />
+
+    <ImageView
+        android:id="@+id/particle2"
+        android:layout_width="6dp"
+        android:layout_height="6dp"
+        android:layout_marginTop="300dp"
+        android:layout_marginEnd="80dp"
+        android:src="@drawable/particle_dot"
+        android:alpha="0.4" />
+
+    <ImageView
+        android:id="@+id/particle3"
+        android:layout_width="10dp"
+        android:layout_height="10dp"
+        android:layout_marginTop="150dp"
+        android:layout_marginEnd="40dp"
+        android:src="@drawable/particle_dot"
+        android:alpha="0.5" />
+
+</RelativeLayout>
