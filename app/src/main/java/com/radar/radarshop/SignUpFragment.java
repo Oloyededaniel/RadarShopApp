@@ -185,7 +185,7 @@ public class SignUpFragment extends Fragment {
             boolean created = db.insertUser(first, last, email, pass);
 
             if (created) {
-                new SessionManager(requireContext()).login(email);
+                new SessionManager(requireContext()).login(email, first, last);
                 Intent intent = new Intent(requireContext(), HomeActivity.class);
                 startActivity(intent);
                 requireActivity().finish();

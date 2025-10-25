@@ -16,11 +16,22 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 public class HomeActivity extends AppCompatActivity {
 
     private EditText etSearch;
+    private TextView avatar;
+    private TextView welcome;
+    private TextView userName;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
+        // Initialize user interface elements
+        avatar = findViewById(R.id.avatar);
+        welcome = findViewById(R.id.welcome);
+        userName = findViewById(R.id.userName);
+        
+        // Set up personalized welcome message
+        setupUserWelcome();
 
         // Search field -> open products with initial query
         etSearch = findViewById(R.id.etSearch);
@@ -72,6 +83,37 @@ public class HomeActivity extends AppCompatActivity {
                 return false;
             });
             bottom.setSelectedItemId(R.id.nav_home);
+        }
+    }
+
+    private void setupUserWelcome() {
+        SessionManager session = new SessionManager(this);
+        
+        if (session.isLoggedIn()) {
+            String fullName = session.getFullName();
+            String initials = session.getUserInitials();
+            
+            // Set user name
+            if (!fullName.isEmpty()) {
+                userName.setText(fullName);
+            } else {
+                userName.setText("User");
+            }
+            
+            // Set user initials in avatar
+            if (!initials.isEmpty()) {
+                avatar.setText(initials);
+            } else {
+                avatar.setText("U");
+            }
+            
+            // Set welcome message
+            welcome.setText("Welcome back,");
+        } else {
+            // Fallback if not logged in (shouldn't happen)
+            userName.setText("Guest");
+            avatar.setText("G");
+            welcome.setText("Welcome,");
         }
     }
 

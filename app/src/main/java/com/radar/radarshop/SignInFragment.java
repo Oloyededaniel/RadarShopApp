@@ -49,7 +49,12 @@ public class SignInFragment extends Fragment {
             boolean ok = db.validateUser(email, pass); // assumes your helper provides this
 
             if (ok) {
-                new SessionManager(requireContext()).login(email);
+                // Get user profile to retrieve first and last name
+                DatabaseHelper.UserProfile profile = db.getUserProfile(email);
+                String firstName = profile != null ? profile.first : "";
+                String lastName = profile != null ? profile.last : "";
+                
+                new SessionManager(requireContext()).login(email, firstName, lastName);
                 Intent intent = new Intent(requireContext(), HomeActivity.class);
                 startActivity(intent);
                 requireActivity().finish();

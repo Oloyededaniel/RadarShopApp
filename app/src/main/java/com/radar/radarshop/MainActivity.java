@@ -60,7 +60,6 @@ public class MainActivity extends AppCompatActivity {
         spinnerCategory.setAdapter(spinnerAdapter);
         spinnerCategory.setSelection(0);
 
-        // Price sliders
         seekBarMin.setMax(PRICE_MAX_DEFAULT);
         seekBarMax.setMax(PRICE_MAX_DEFAULT);
         seekBarMin.setProgress(0);
