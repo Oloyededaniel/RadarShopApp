@@ -31,7 +31,9 @@
                     android:id="@+id/btnBack"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
+                    android:background="#00FFFFFF"
                     android:contentDescription="Back"
+                    android:scaleType="centerInside"
                     android:src="@drawable/back_arrow" />
 
                 <TextView
