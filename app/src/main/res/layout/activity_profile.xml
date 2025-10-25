@@ -1,67 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bgPage">
+    android:background="@color/bgPage"
+    android:fillViewport="true">
 
-    <com.google.android.material.appbar.AppBarLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/topStrip"
-        app:liftOnScroll="true"
-        app:liftOnScrollTargetViewId="@+id/profileScroll"
-        app:elevation="0dp">
+        android:orientation="vertical">
 
+        <!-- Header Section with Gradient -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@drawable/profile_header_gradient"
             android:orientation="vertical"
-            android:paddingLeft="16dp"
-            android:paddingRight="16dp"
-            android:paddingTop="16dp"
-            android:paddingBottom="24dp"
-            app:layout_scrollFlags="scroll|enterAlways">
+            android:padding="24dp">
 
+            <!-- Back Button and Title -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:layout_marginBottom="32dp">
 
                 <ImageButton
                     android:id="@+id/btnBack"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:background="@android:color/transparent"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     android:contentDescription="Back"
-                    android:src="@android:drawable/ic_media_previous"
-                    app:tint="@android:color/white" />
+                    android:src="@drawable/back_arrow" />
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:text="My Profile"
                     android:textStyle="bold"
-                    android:textSize="18sp"
-                    android:paddingLeft="4dp"
-                    android:textColor="@android:color/white"/>
+                    android:textSize="24sp"
+                    android:textColor="@android:color/white"
+                    android:paddingStart="20dp" />
             </LinearLayout>
 
+            <!-- Profile Avatar and Info -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:gravity="center_horizontal"
-                android:paddingTop="16dp">
+                android:gravity="center_horizontal">
 
+                <!-- Avatar with enhanced styling -->
                 <com.google.android.material.card.MaterialCardView
-                    android:layout_width="128dp"
-                    android:layout_height="128dp"
-                    app:cardCornerRadius="64dp"
-                    app:strokeColor="#E6E6EE"
-                    app:strokeWidth="2dp">
+                    android:layout_width="140dp"
+                    android:layout_height="140dp"
+                    app:cardCornerRadius="70dp"
+                    app:strokeColor="#FFFFFF"
+                    app:strokeWidth="4dp"
+                    app:cardElevation="8dp"
+                    android:layout_marginBottom="20dp">
 
                     <TextView
                         android:id="@+id/tvAvatar"
@@ -69,11 +68,12 @@
                         android:layout_height="match_parent"
                         android:gravity="center"
                         android:text="JD"
-                        android:textSize="28sp"
+                        android:textSize="36sp"
                         android:textStyle="bold"
-                        android:textColor="@color/txtPrimary"/>
+                        android:textColor="@color/txtPrimary" />
                 </com.google.android.material.card.MaterialCardView>
 
+                <!-- Name -->
                 <TextView
                     android:id="@+id/tvName"
                     android:layout_width="wrap_content"
@@ -81,52 +81,48 @@
                     android:text="John Doe"
                     android:textStyle="bold"
                     android:textColor="@android:color/white"
-                    android:textSize="18sp"
-                    android:paddingTop="10dp"/>
+                    android:textSize="28sp"
+                    android:layout_marginBottom="8dp" />
 
+                <!-- Email -->
                 <TextView
                     android:id="@+id/tvEmailHeader"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="john.doe@example.com"
-                    android:textColor="#B8B8C6"
-                    android:paddingTop="4dp"/>
+                    android:textColor="#E0E0E0"
+                    android:textSize="16sp" />
             </LinearLayout>
         </LinearLayout>
-    </com.google.android.material.appbar.AppBarLayout>
 
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/profileScroll"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fillViewport="true"
-        android:nestedScrollingEnabled="true"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
-
+        <!-- Content Section -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="16dp"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:padding="20dp">
 
-            <!-- PERSONAL -->
+            <!-- Personal Information Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="20dp">
+                android:layout_marginBottom="20dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="16dp"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:padding="20dp">
 
+                    <!-- Card Header -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:gravity="center_vertical">
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="20dp">
 
                         <TextView
                             android:layout_width="0dp"
@@ -134,13 +130,13 @@
                             android:layout_weight="1"
                             android:text="Personal Information"
                             android:textStyle="bold"
-                            android:textSize="20sp"
-                            android:textColor="@color/txtPrimary"/>
+                            android:textSize="18sp"
+                            android:textColor="@color/txtPrimary" />
 
                         <ImageView
                             android:id="@+id/ivSave"
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
                             android:src="@android:drawable/ic_menu_save"
                             android:visibility="gone"
                             app:tint="@color/promoGreen" />
@@ -150,35 +146,44 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Edit"
-                            android:paddingLeft="8dp"
-                            android:textColor="@color/txtPrimary"/>
+                            android:textColor="@color/promoGreen"
+                            android:textStyle="bold"
+                            android:paddingStart="12dp"
+                            android:background="?attr/selectableItemBackground"
+                            android:padding="8dp" />
                     </LinearLayout>
 
-                    <!-- First / Last -->
+                    <!-- Name Fields -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:paddingTop="12dp">
+                        android:layout_marginBottom="16dp">
 
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="vertical"
-                            android:paddingRight="8dp">
+                            android:paddingEnd="8dp">
+
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="First Name"
-                                android:textStyle="bold"/>
+                                android:textStyle="bold"
+                                android:textColor="@color/txtPrimary"
+                                android:textSize="14sp"
+                                android:layout_marginBottom="8dp" />
+
                             <EditText
                                 android:id="@+id/etFirst"
                                 android:layout_width="match_parent"
-                                android:layout_height="48dp"
+                                android:layout_height="50dp"
                                 android:background="@drawable/rounded_container"
                                 android:padding="12dp"
-                                android:enabled="false"/>
+                                android:enabled="false"
+                                android:textSize="16sp" />
                         </LinearLayout>
 
                         <LinearLayout
@@ -186,84 +191,104 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="vertical"
-                            android:paddingLeft="8dp">
+                            android:paddingStart="8dp">
+
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Last Name"
-                                android:textStyle="bold"/>
+                                android:textStyle="bold"
+                                android:textColor="@color/txtPrimary"
+                                android:textSize="14sp"
+                                android:layout_marginBottom="8dp" />
+
                             <EditText
                                 android:id="@+id/etLast"
                                 android:layout_width="match_parent"
-                                android:layout_height="48dp"
+                                android:layout_height="50dp"
                                 android:background="@drawable/rounded_container"
                                 android:padding="12dp"
-                                android:enabled="false"/>
+                                android:enabled="false"
+                                android:textSize="16sp" />
                         </LinearLayout>
                     </LinearLayout>
 
-                    <!-- Email -->
+                    <!-- Email Field -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:paddingTop="12dp">
+                        android:layout_marginBottom="16dp">
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Email"
-                            android:textStyle="bold"/>
+                            android:textStyle="bold"
+                            android:textColor="@color/txtPrimary"
+                            android:textSize="14sp"
+                            android:layout_marginBottom="8dp" />
+
                         <EditText
                             android:id="@+id/etEmail"
                             android:layout_width="match_parent"
-                            android:layout_height="48dp"
+                            android:layout_height="50dp"
                             android:background="@drawable/rounded_container"
                             android:padding="12dp"
                             android:enabled="false"
-                            android:inputType="textEmailAddress"/>
+                            android:inputType="textEmailAddress"
+                            android:textSize="16sp" />
                     </LinearLayout>
 
-                    <!-- Phone -->
+                    <!-- Phone Field -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:paddingTop="12dp">
+                        android:orientation="vertical">
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Phone"
-                            android:textStyle="bold"/>
+                            android:textStyle="bold"
+                            android:textColor="@color/txtPrimary"
+                            android:textSize="14sp"
+                            android:layout_marginBottom="8dp" />
+
                         <EditText
                             android:id="@+id/etPhone"
                             android:layout_width="match_parent"
-                            android:layout_height="48dp"
+                            android:layout_height="50dp"
                             android:background="@drawable/rounded_container"
                             android:padding="12dp"
                             android:enabled="false"
-                            android:inputType="phone"/>
+                            android:inputType="phone"
+                            android:textSize="16sp" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- ADDRESS -->
+            <!-- Address Information Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="20dp">
+                android:layout_marginBottom="20dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="16dp"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:padding="20dp">
 
+                    <!-- Card Header -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:gravity="center_vertical">
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="20dp">
 
                         <TextView
                             android:layout_width="0dp"
@@ -271,56 +296,77 @@
                             android:layout_weight="1"
                             android:text="Shipping Address"
                             android:textStyle="bold"
-                            android:textSize="20sp"
-                            android:textColor="@color/txtPrimary"/>
+                            android:textSize="18sp"
+                            android:textColor="@color/txtPrimary" />
 
                         <TextView
                             android:id="@+id/tvEditAddress"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Edit"
-                            android:textColor="@color/txtPrimary"/>
+                            android:textColor="@color/promoGreen"
+                            android:textStyle="bold"
+                            android:background="?attr/selectableItemBackground"
+                            android:padding="8dp" />
                     </LinearLayout>
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Street Address"
-                        android:textStyle="bold"
-                        android:paddingTop="12dp"/>
-
-                    <EditText
-                        android:id="@+id/etStreet"
+                    <!-- Street Address -->
+                    <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:background="@drawable/rounded_container"
-                        android:padding="12dp"
-                        android:enabled="false"/>
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginBottom="16dp">
 
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Street Address"
+                            android:textStyle="bold"
+                            android:textColor="@color/txtPrimary"
+                            android:textSize="14sp"
+                            android:layout_marginBottom="8dp" />
+
+                        <EditText
+                            android:id="@+id/etStreet"
+                            android:layout_width="match_parent"
+                            android:layout_height="50dp"
+                            android:background="@drawable/rounded_container"
+                            android:padding="12dp"
+                            android:enabled="false"
+                            android:textSize="16sp" />
+                    </LinearLayout>
+
+                    <!-- City and State -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:paddingTop="12dp">
+                        android:layout_marginBottom="16dp">
 
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="vertical"
-                            android:paddingRight="8dp">
+                            android:paddingEnd="8dp">
+
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="City"
-                                android:textStyle="bold"/>
+                                android:textStyle="bold"
+                                android:textColor="@color/txtPrimary"
+                                android:textSize="14sp"
+                                android:layout_marginBottom="8dp" />
+
                             <EditText
                                 android:id="@+id/etCity"
                                 android:layout_width="match_parent"
-                                android:layout_height="48dp"
+                                android:layout_height="50dp"
                                 android:background="@drawable/rounded_container"
                                 android:padding="12dp"
-                                android:enabled="false"/>
+                                android:enabled="false"
+                                android:textSize="16sp" />
                         </LinearLayout>
 
                         <LinearLayout
@@ -328,47 +374,59 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="vertical"
-                            android:paddingLeft="8dp">
+                            android:paddingStart="8dp">
+
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="State"
-                                android:textStyle="bold"/>
+                                android:textStyle="bold"
+                                android:textColor="@color/txtPrimary"
+                                android:textSize="14sp"
+                                android:layout_marginBottom="8dp" />
+
                             <EditText
                                 android:id="@+id/etState"
                                 android:layout_width="match_parent"
-                                android:layout_height="48dp"
+                                android:layout_height="50dp"
                                 android:background="@drawable/rounded_container"
                                 android:padding="12dp"
-                                android:enabled="false"/>
+                                android:enabled="false"
+                                android:textSize="16sp" />
                         </LinearLayout>
                     </LinearLayout>
 
+                    <!-- ZIP and Country -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:paddingTop="12dp">
+                        android:orientation="horizontal">
 
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="vertical"
-                            android:paddingRight="8dp">
+                            android:paddingEnd="8dp">
+
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="ZIP Code"
-                                android:textStyle="bold"/>
+                                android:textStyle="bold"
+                                android:textColor="@color/txtPrimary"
+                                android:textSize="14sp"
+                                android:layout_marginBottom="8dp" />
+
                             <EditText
                                 android:id="@+id/etZip"
                                 android:layout_width="match_parent"
-                                android:layout_height="48dp"
+                                android:layout_height="50dp"
                                 android:background="@drawable/rounded_container"
                                 android:padding="12dp"
                                 android:enabled="false"
-                                android:inputType="number"/>
+                                android:inputType="number"
+                                android:textSize="16sp" />
                         </LinearLayout>
 
                         <LinearLayout
@@ -376,61 +434,171 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="vertical"
-                            android:paddingLeft="8dp">
+                            android:paddingStart="8dp">
+
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Country"
-                                android:textStyle="bold"/>
+                                android:textStyle="bold"
+                                android:textColor="@color/txtPrimary"
+                                android:textSize="14sp"
+                                android:layout_marginBottom="8dp" />
+
                             <EditText
                                 android:id="@+id/etCountry"
                                 android:layout_width="match_parent"
-                                android:layout_height="48dp"
+                                android:layout_height="50dp"
                                 android:background="@drawable/rounded_container"
                                 android:padding="12dp"
-                                android:enabled="false"/>
+                                android:enabled="false"
+                                android:textSize="16sp" />
                         </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- ACTIONS -->
+            <!-- Action Buttons Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="20dp">
+                android:layout_marginBottom="20dp"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="4dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="12dp"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:padding="24dp">
 
-                    <Button
-                        android:id="@+id/btnChangePassword"
+                    <!-- Change Password Button -->
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Change Password"/>
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:background="@drawable/action_item_background"
+                        android:padding="16dp"
+                        android:layout_marginBottom="12dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:id="@+id/btnChangePassword">
 
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_lock_custom"
+                            app:tint="@color/brand_primary" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Change Password"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/txtPrimary"
+                            android:paddingStart="16dp" />
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@android:drawable/ic_media_next"
+                            app:tint="@color/txtMuted" />
+                    </LinearLayout>
+
+                    <!-- Divider -->
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
-                        android:layout_marginTop="12dp"
-                        android:layout_marginBottom="12dp"
-                        android:background="#EEEEEE"/>
+                        android:background="#F0F0F0"
+                        android:layout_marginVertical="8dp" />
 
-                    <Button
-                        android:id="@+id/btnLogout"
+                    <!-- Logout Button -->
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Logout"
-                        android:textColor="@android:color/holo_red_dark"/>
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:background="@drawable/action_item_background"
+                        android:padding="16dp"
+                        android:layout_marginBottom="12dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:id="@+id/btnLogout">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_logout_custom"
+                            app:tint="#FF6B6B" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Logout"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="#FF6B6B"
+                            android:paddingStart="16dp" />
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@android:drawable/ic_media_next"
+                            app:tint="@color/txtMuted" />
+                    </LinearLayout>
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#F0F0F0"
+                        android:layout_marginVertical="8dp" />
+
+                    <!-- Delete Account Button -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:background="@drawable/danger_action_background"
+                        android:padding="16dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:id="@+id/btnDeleteAccount">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_delete_custom"
+                            app:tint="@android:color/white" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Delete Account"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="@android:color/white"
+                            android:paddingStart="16dp" />
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@android:drawable/ic_media_next"
+                            app:tint="@android:color/white" />
+                    </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <Space
+            <!-- Bottom Spacing -->
+            <View
                 android:layout_width="match_parent"
-                android:layout_height="96dp"/>
+                android:layout_height="40dp" />
         </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+    </LinearLayout>
+</ScrollView>

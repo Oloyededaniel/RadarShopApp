@@ -264,6 +264,26 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return rows > 0;
     }
 
+    public boolean deleteUser(String email) {
+        String normEmail = normalizeEmail(email);
+        if (normEmail.isEmpty()) return false;
+        
+        SQLiteDatabase db = getWritableDatabase();
+        try {
+            // Delete user's wishlist items
+            db.delete(TABLE_WISHLIST, COL_WISH_EMAIL + "=?", new String[]{normEmail});
+            
+            // Delete user's reviews
+            db.delete(TABLE_REVIEWS, COL_REVIEW_EMAIL + "=?", new String[]{normEmail});
+            
+            // Delete user account
+            int rows = db.delete(TABLE_USERS, COL_EMAIL + "=?", new String[]{normEmail});
+            return rows > 0;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     /* PRODUCTS */
 
     public long insertProduct(String name, String desc, double price, String category) {
