@@ -32,6 +32,14 @@ public class HomeActivity extends AppCompatActivity {
         
         // Set up personalized welcome message
         setupUserWelcome();
+        
+        // Avatar click -> open profile
+        if (avatar != null) {
+            avatar.setOnClickListener(v -> {
+                Intent profileIntent = new Intent(this, ProfileActivity.class);
+                startActivity(profileIntent);
+            });
+        }
 
         // Search field -> open products with initial query
         etSearch = findViewById(R.id.etSearch);

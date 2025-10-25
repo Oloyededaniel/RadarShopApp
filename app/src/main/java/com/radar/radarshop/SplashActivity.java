@@ -158,9 +158,6 @@ public class SplashActivity extends AppCompatActivity {
         // Check if user is logged in
         SessionManager session = new SessionManager(this);
         
-        // For testing: Clear session to force login
-        session.logout();
-        
         Log.d("SplashActivity", "Session info: " + session.getSessionInfo());
         
         Intent intent;

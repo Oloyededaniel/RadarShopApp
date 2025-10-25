@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">RadarShop</string>
     <string name="cd_profile">profile</string>
+    <string name="appbar_scrolling_view_behavior">com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior</string>
 </resources>

@@ -1,15 +1,18 @@
 package com.radar.radarshop;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.nfc.Tag;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,7 +26,7 @@ public class ProfileActivity extends AppCompatActivity {
     private EditText etStreet, etCity, etState, etZip, etCountry;
     private TextView tvEdit, tvEditAddress;
     private ImageView ivSave;
-    private Button btnChangePassword, btnLogout;
+    private LinearLayout btnChangePassword, btnLogout, btnDeleteAccount;
 
     private DatabaseHelper db;
     private SessionManager session;
@@ -78,6 +81,7 @@ public class ProfileActivity extends AppCompatActivity {
 
         btnChangePassword = findViewById(R.id.btnChangePassword);
         btnLogout         = findViewById(R.id.btnLogout);
+        btnDeleteAccount  = findViewById(R.id.btnDeleteAccount);
 
         // --- Set defaults and render profile ---
         // Email is the key: keep disabled
@@ -88,8 +92,12 @@ public class ProfileActivity extends AppCompatActivity {
 
         // --- Listeners (only attach if views exist) ---
         if (btnBack != null) {
-            btnBack.setOnClickListener(v -> getOnBackPressedDispatcher().onBackPressed());
-            // btnBack.setOnClickListener(v -> onBackPressedDispatcher().onBackPressed());
+            btnBack.setOnClickListener(v -> {
+                Intent homeIntent = new Intent(this, HomeActivity.class);
+                homeIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(homeIntent);
+                finish();
+            });
         }
 
         if (tvEdit != null) {
@@ -143,6 +151,10 @@ public class ProfileActivity extends AppCompatActivity {
                 startActivity(new Intent(this, AuthActivity.class));
                 finish();
             });
+        }
+
+        if (btnDeleteAccount != null) {
+            btnDeleteAccount.setOnClickListener(v -> showDeleteAccountDialog());
         }
     }
 
@@ -233,5 +245,79 @@ public class ProfileActivity extends AppCompatActivity {
             }
         }
         return "U";
+    }
+
+    private void showDeleteAccountDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Delete Account")
+                .setMessage("Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently removed.")
+                .setPositiveButton("Delete", (dialog, which) -> {
+                    // Show confirmation dialog
+                    showFinalDeleteConfirmation();
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .show();
+    }
+
+    private void showFinalDeleteConfirmation() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Final Confirmation")
+                .setMessage("This will permanently delete your account and all associated data. Type 'DELETE' to confirm.")
+                .setView(createDeleteConfirmationView())
+                .setPositiveButton("Confirm Delete", (dialog, which) -> {
+                    // Check if user typed DELETE
+                    View dialogView = ((AlertDialog) dialog).getWindow().getDecorView();
+                    EditText confirmationInput = findEditTextInView(dialogView);
+                    if (confirmationInput != null && "DELETE".equals(confirmationInput.getText().toString().trim())) {
+                        deleteUserAccount();
+                    } else {
+                        Toast.makeText(this, "Please type 'DELETE' to confirm", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .show();
+    }
+
+    private View createDeleteConfirmationView() {
+        EditText editText = new EditText(this);
+        editText.setId(View.generateViewId()); // Generate a unique ID
+        editText.setHint("Type DELETE to confirm");
+        editText.setPadding(50, 20, 50, 20);
+        return editText;
+    }
+
+    private EditText findEditTextInView(View view) {
+        if (view instanceof EditText) {
+            return (EditText) view;
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                EditText result = findEditTextInView(group.getChildAt(i));
+                if (result != null) {
+                    return result;
+                }
+            }
+        }
+        return null;
+    }
+
+    private void deleteUserAccount() {
+        String email = session.getEmail();
+        if (!TextUtils.isEmpty(email)) {
+            // Delete user from database
+            boolean deleted = db.deleteUser(email);
+            if (deleted) {
+                // Clear session and redirect to auth
+                session.logout();
+                Toast.makeText(this, "Account deleted successfully", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, AuthActivity.class));
+                finish();
+            } else {
+                Toast.makeText(this, "Failed to delete account. Please try again.", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 }
