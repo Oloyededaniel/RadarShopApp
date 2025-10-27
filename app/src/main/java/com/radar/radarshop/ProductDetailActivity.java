@@ -109,7 +109,7 @@ public class ProductDetailActivity extends AppCompatActivity {
 
         NumberFormat currency = NumberFormat.getCurrencyInstance(Locale.getDefault());
         textName.setText(match.getName());
-        textCategory.setText(match.getCategory());
+        textCategory.setText(match.getCategoryName());
         textPrice.setText(currency.format(match.getPrice()));
         textDescription.setText(match.getDescription());
     }

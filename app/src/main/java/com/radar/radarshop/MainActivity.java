@@ -53,7 +53,10 @@ public class MainActivity extends AppCompatActivity {
         // Categories
         List<String> categories = new ArrayList<>();
         categories.add("All");
-        categories.addAll(dbHelper.getAllCategories());
+        List<Category> categoryList = dbHelper.getAllCategories();
+        for (Category cat : categoryList) {
+            categories.add(cat.getName());
+        }
         ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(
                 this, android.R.layout.simple_spinner_item, categories);
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -86,6 +89,18 @@ public class MainActivity extends AppCompatActivity {
         String initial = getIntent().getStringExtra("initial_query");
         if (initial != null && !initial.trim().isEmpty()) {
             editTextSearch.setText(initial.trim());
+        }
+        
+        // Handle category filter from HomeActivity
+        int categoryFilter = getIntent().getIntExtra("category_filter", -1);
+        if (categoryFilter != -1) {
+            // Find the category name and set spinner selection
+            for (int i = 0; i < categoryList.size(); i++) {
+                if (categoryList.get(i).getId() == categoryFilter) {
+                    spinnerCategory.setSelection(i + 1); // +1 because "All" is at index 0
+                    break;
+                }
+            }
         }
 
         // Actions

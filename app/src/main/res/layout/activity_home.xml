@@ -259,70 +259,17 @@
                     android:textColor="@color/txtPrimary"/>
             </LinearLayout>
 
-            <!-- Category grid -->
-            <GridLayout
+            <!-- Category RecyclerView -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewCategories"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:columnCount="2"
-                android:useDefaultMargins="true"
-                android:paddingLeft="12dp"
-                android:paddingRight="12dp"
-                android:layout_marginTop="10dp">
-
-                <include layout="@layout/view_category_card" android:id="@+id/cardElectronics"/>
-                <include layout="@layout/view_category_card" android:id="@+id/cardFashion"/>
-                <include layout="@layout/view_category_card" android:id="@+id/cardHome"/>
-                <include layout="@layout/view_category_card" android:id="@+id/cardSports"/>
-                <include layout="@layout/view_category_card" android:id="@+id/cardBeauty"/>
-                <include layout="@layout/view_category_card" android:id="@+id/cardBooks"/>
-            </GridLayout>
-
-            <!-- Trending header -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
                 android:paddingLeft="16dp"
                 android:paddingRight="16dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Trending Now"
-                    android:textStyle="bold"
-                    android:textSize="20sp"
-                    android:textColor="@color/txtPrimary"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="See All"
-                    android:textColor="@color/txtPrimary"/>
-            </LinearLayout>
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="110dp"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"
-                android:layout_marginTop="10dp"
-                app:cardCornerRadius="18dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="(Trending carousel placeholder)"
-                        android:textColor="@color/txtMuted"/>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+                android:layout_marginTop="16dp"
+                android:nestedScrollingEnabled="true"
+                android:clipToPadding="false"
+                android:overScrollMode="ifContentScrolls"/>
 
             <Space
                 android:layout_width="match_parent"

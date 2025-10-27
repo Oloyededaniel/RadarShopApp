@@ -10,8 +10,11 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+
+import java.util.List;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -19,19 +22,29 @@ public class HomeActivity extends AppCompatActivity {
     private TextView avatar;
     private TextView welcome;
     private TextView userName;
+    private DatabaseHelper databaseHelper;
+    private RecyclerView recyclerViewCategories;
+    private CategoryAdapter categoryAdapter;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
+        // Initialize database helper
+        databaseHelper = new DatabaseHelper(this);
+        
         // Initialize user interface elements
         avatar = findViewById(R.id.avatar);
         welcome = findViewById(R.id.welcome);
         userName = findViewById(R.id.userName);
+        recyclerViewCategories = findViewById(R.id.recyclerViewCategories);
         
         // Set up personalized welcome message
         setupUserWelcome();
+        
+        // Set up category RecyclerView
+        setupCategoryRecyclerView();
         
         // Avatar click -> open profile
         if (avatar != null) {
@@ -123,6 +136,32 @@ public class HomeActivity extends AppCompatActivity {
             avatar.setText("G");
             welcome.setText("Welcome,");
         }
+    }
+
+    private void setupCategoryRecyclerView() {
+        // Get all categories from database
+        List<Category> categories = databaseHelper.getAllCategories();
+        
+        // Set up RecyclerView with scattered grid layout
+        ScatteredGridLayoutManager layoutManager = new ScatteredGridLayoutManager(this);
+        recyclerViewCategories.setLayoutManager(layoutManager);
+        
+        // Create and set adapter
+        categoryAdapter = new CategoryAdapter(categories, databaseHelper, category -> {
+            // Handle category click - open products filtered by category
+            openProductsByCategory(category.getId());
+        });
+        
+        recyclerViewCategories.setAdapter(categoryAdapter);
+        
+        // Enable scrolling based on content
+        recyclerViewCategories.setNestedScrollingEnabled(true);
+    }
+    
+    private void openProductsByCategory(int categoryId) {
+        Intent i = new Intent(this, MainActivity.class);
+        i.putExtra("category_filter", categoryId);
+        startActivity(i);
     }
 
     private void openProducts(@Nullable String initialQuery) {
