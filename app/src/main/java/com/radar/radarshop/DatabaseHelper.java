@@ -714,9 +714,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         ArrayList<Product> list = new ArrayList<>();
         String sql =
                 "SELECT p." + COL_PRODUCT_ID + ", p." + COL_PRODUCT_NAME + ", p." + COL_PRODUCT_DESC + ", " +
-                        "p." + COL_PRODUCT_PRICE + ", p." + COL_PRODUCT_CATEGORY +
+                        "p." + COL_PRODUCT_DETAILED_DESC + ", p." + COL_PRODUCT_PRICE + ", p." + COL_PRODUCT_CATEGORY_ID + ", " +
+                        "p." + COL_PRODUCT_STOCK + ", p." + COL_PRODUCT_AVERAGE_RATING + ", p." + COL_PRODUCT_TOTAL_REVIEWS + ", " +
+                        "p." + COL_PRODUCT_SKU + ", p." + COL_PRODUCT_BRAND + ", p." + COL_PRODUCT_WEIGHT + ", " +
+                        "p." + COL_PRODUCT_DIMENSIONS + ", p." + COL_PRODUCT_CREATED_AT + ", p." + COL_PRODUCT_UPDATED_AT + ", " +
+                        "c." + COL_CATEGORY_NAME +
                         " FROM " + TABLE_PRODUCTS + " p " +
                         " JOIN " + TABLE_CART + " w ON p." + COL_PRODUCT_ID + " = w." + COL_CART_PRODUCT_ID +
+                        " JOIN " + TABLE_CATEGORIES + " c ON p." + COL_PRODUCT_CATEGORY_ID + " = c." + COL_CATEGORY_ID +
                         " WHERE w." + COL_CART_EMAIL + " = ?";
 
         try (Cursor c = getReadableDatabase().rawQuery(sql, new String[]{userEmail})) {
@@ -724,9 +729,22 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 int id = c.getInt(0);
                 String name = c.getString(1);
                 String desc = c.getString(2);
-                double price = c.getDouble(3);
-                String category = c.getString(4);
-                list.add(new Product(id, name, desc, price, category));
+                String detailedDesc = c.getString(3);
+                double price = c.getDouble(4);
+                int categoryId = c.getInt(5);
+                int stock = c.getInt(6);
+                double rating = c.getDouble(7);
+                int reviews = c.getInt(8);
+                String sku = c.getString(9);
+                String brand = c.getString(10);
+                double weight = c.getDouble(11);
+                String dimensions = c.getString(12);
+                String createdAt = c.getString(13);
+                String updatedAt = c.getString(14);
+                String categoryName = c.getString(15);
+                
+                list.add(new Product(id, name, desc, detailedDesc, price, categoryId, categoryName, 
+                                   stock, rating, reviews, sku, brand, weight, dimensions, createdAt, updatedAt));
             }
         }
         return list;
