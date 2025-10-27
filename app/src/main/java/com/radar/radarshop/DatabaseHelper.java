@@ -70,6 +70,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COL_WISH_EMAIL = "user_email";
     public static final String COL_WISH_PRODUCT_ID = "product_id";
 
+    // Cart
+    public static final String TABLE_CART = "cart";
+    public static final String COL_CART_ID = "id";
+    public static final String COL_CART_EMAIL = "user_email";
+    public static final String COL_CART_PRODUCT_ID = "product_id";
+    public static final String COL_CART_QUANTITY = "quantity";
+
     // Reviews
     public static final String TABLE_REVIEWS = "reviews";
     public static final String COL_REVIEW_ID = "id";
@@ -153,6 +160,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         COL_WISH_EMAIL + " TEXT, " +
                         COL_WISH_PRODUCT_ID + " INTEGER, " +
                         "UNIQUE(" + COL_WISH_EMAIL + ", " + COL_WISH_PRODUCT_ID + ")" +
+                        ");"
+        );
+
+        // Cart
+        db.execSQL(
+                "CREATE TABLE " + TABLE_CART + " (" +
+                        COL_CART_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                        COL_CART_EMAIL + " TEXT, " +
+                        COL_CART_PRODUCT_ID + " INTEGER, " +
+                        COL_CART_QUANTITY + " INTEGER, " +
+                        "UNIQUE(" + COL_CART_EMAIL + ", " + COL_CART_PRODUCT_ID + ")" +
                         ");"
         );
 
@@ -353,6 +371,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_PRODUCTS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_PRODUCT_IMAGES);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_WISHLIST);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_CART);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_REVIEWS);
         onCreate(db);
     }
@@ -666,6 +685,48 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 
                 list.add(new Product(id, name, desc, detailedDesc, price, categoryId, categoryName,
                                    stock, rating, reviews, sku, brand, weight, dimensions, createdAt, updatedAt));
+            }
+        }
+        return list;
+    }
+
+    /* CART */
+
+    public boolean addToCart(String userEmail, int productId, int itemQuantity) {
+        ContentValues cv = new ContentValues();
+        cv.put(COL_CART_EMAIL, userEmail);
+        cv.put(COL_CART_PRODUCT_ID, productId);
+        cv.put(COL_CART_QUANTITY, itemQuantity);
+        long row = getWritableDatabase().insert(TABLE_CART, null, cv);
+        return row != -1;
+    }
+
+    public boolean removeFromCart(String userEmail, int productId) {
+        int rows = getWritableDatabase().delete(
+                TABLE_CART,
+                COL_CART_EMAIL + "=? AND " + COL_CART_PRODUCT_ID + "=?",
+                new String[]{userEmail, String.valueOf(productId)});
+        return rows > 0;
+    }
+
+    // TODO: add quantity to returned list
+    public List<Product> getCart(String userEmail) {
+        ArrayList<Product> list = new ArrayList<>();
+        String sql =
+                "SELECT p." + COL_PRODUCT_ID + ", p." + COL_PRODUCT_NAME + ", p." + COL_PRODUCT_DESC + ", " +
+                        "p." + COL_PRODUCT_PRICE + ", p." + COL_PRODUCT_CATEGORY +
+                        " FROM " + TABLE_PRODUCTS + " p " +
+                        " JOIN " + TABLE_CART + " w ON p." + COL_PRODUCT_ID + " = w." + COL_CART_PRODUCT_ID +
+                        " WHERE w." + COL_CART_EMAIL + " = ?";
+
+        try (Cursor c = getReadableDatabase().rawQuery(sql, new String[]{userEmail})) {
+            while (c.moveToNext()) {
+                int id = c.getInt(0);
+                String name = c.getString(1);
+                String desc = c.getString(2);
+                double price = c.getDouble(3);
+                String category = c.getString(4);
+                list.add(new Product(id, name, desc, price, category));
             }
         }
         return list;
