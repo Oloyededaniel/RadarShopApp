@@ -12,8 +12,8 @@ public class SessionManager {
 
     private final SharedPreferences sp;
 
-    public SessionManager(Context ctx) {
-        sp = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+    public SessionManager(Context context) {
+        sp = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
     }
 
     public void login(String email, String firstName, String lastName) {
