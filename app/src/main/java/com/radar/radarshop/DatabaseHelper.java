@@ -105,6 +105,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         ");"
         );
 
+        // Cart
+        db.execSQL(
+                "CREATE TABLE " + TABLE_CART + " (" +
+                        COL_CART_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                        COL_CART_EMAIL + " TEXT, " +
+                        COL_CART_PRODUCT_ID + " INTEGER, " +
+                        COL_CART_QUANTITY + " INTEGER, " +
+                        "UNIQUE(" + COL_CART_EMAIL + ", " + COL_CART_PRODUCT_ID + ")" +
+                        ");"
+        );
+
         // Reviews
         db.execSQL(
                 "CREATE TABLE " + TABLE_REVIEWS + " (" +
@@ -424,6 +435,48 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         " FROM " + TABLE_PRODUCTS + " p " +
                         " JOIN " + TABLE_WISHLIST + " w ON p." + COL_PRODUCT_ID + " = w." + COL_WISH_PRODUCT_ID +
                         " WHERE w." + COL_WISH_EMAIL + " = ?";
+
+        try (Cursor c = getReadableDatabase().rawQuery(sql, new String[]{userEmail})) {
+            while (c.moveToNext()) {
+                int id = c.getInt(0);
+                String name = c.getString(1);
+                String desc = c.getString(2);
+                double price = c.getDouble(3);
+                String category = c.getString(4);
+                list.add(new Product(id, name, desc, price, category));
+            }
+        }
+        return list;
+    }
+
+    /* CART */
+
+    public boolean addToCart(String userEmail, int productId, int itemQuantity) {
+        ContentValues cv = new ContentValues();
+        cv.put(COL_CART_EMAIL, userEmail);
+        cv.put(COL_CART_PRODUCT_ID, productId);
+        cv.put(COL_CART_QUANTITY, itemQuantity);
+        long row = getWritableDatabase().insert(TABLE_CART, null, cv);
+        return row != -1;
+    }
+
+    public boolean removeFromCart(String userEmail, int productId) {
+        int rows = getWritableDatabase().delete(
+                TABLE_CART,
+                COL_CART_EMAIL + "=? AND " + COL_CART_PRODUCT_ID + "=?",
+                new String[]{userEmail, String.valueOf(productId)});
+        return rows > 0;
+    }
+
+    // TODO: add quantity to returned list
+    public List<Product> getCart(String userEmail) {
+        ArrayList<Product> list = new ArrayList<>();
+        String sql =
+                "SELECT p." + COL_PRODUCT_ID + ", p." + COL_PRODUCT_NAME + ", p." + COL_PRODUCT_DESC + ", " +
+                        "p." + COL_PRODUCT_PRICE + ", p." + COL_PRODUCT_CATEGORY +
+                        " FROM " + TABLE_PRODUCTS + " p " +
+                        " JOIN " + TABLE_CART + " w ON p." + COL_PRODUCT_ID + " = w." + COL_CART_PRODUCT_ID +
+                        " WHERE w." + COL_CART_EMAIL + " = ?";
 
         try (Cursor c = getReadableDatabase().rawQuery(sql, new String[]{userEmail})) {
             while (c.moveToNext()) {
