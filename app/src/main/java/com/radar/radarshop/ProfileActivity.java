@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -18,6 +19,9 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 public class ProfileActivity extends AppCompatActivity {
 
@@ -27,12 +31,14 @@ public class ProfileActivity extends AppCompatActivity {
     private TextView tvEdit, tvEditAddress;
     private ImageView ivSave;
     private LinearLayout btnChangePassword, btnLogout, btnDeleteAccount;
+    private FrameLayout fragmentContainer;
 
     private DatabaseHelper db;
     private SessionManager session;
 
     private boolean personalEditing = false;
     private boolean addressEditing  = false;
+    private boolean isPasswordFragmentVisible = false;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -82,6 +88,7 @@ public class ProfileActivity extends AppCompatActivity {
         btnChangePassword = findViewById(R.id.btnChangePassword);
         btnLogout         = findViewById(R.id.btnLogout);
         btnDeleteAccount  = findViewById(R.id.btnDeleteAccount);
+        fragmentContainer = findViewById(R.id.fragmentContainer);
 
         // --- Set defaults and render profile ---
         // Email is the key: keep disabled
@@ -140,9 +147,11 @@ public class ProfileActivity extends AppCompatActivity {
         }
 
         if (btnChangePassword != null) {
-            btnChangePassword.setOnClickListener(v ->
-                    Toast.makeText(this, "Change Password not implemented", Toast.LENGTH_SHORT).show()
-            );
+            btnChangePassword.setOnClickListener(v -> {
+                Log.d("ProfileActivity", "Change Password button clicked");
+                Toast.makeText(this, "Opening password change...", Toast.LENGTH_SHORT).show();
+                showPasswordChangeFragment();
+            });
         }
 
         if (btnLogout != null) {
@@ -208,7 +217,6 @@ public class ProfileActivity extends AppCompatActivity {
         setEnabled(etCountry, enabled);
     }
 
-    /* ----------------- tiny safe helpers ----------------- */
 
     private void setText(EditText et, String v) {
         if (et != null) et.setText(v == null ? "" : v);
@@ -318,6 +326,63 @@ public class ProfileActivity extends AppCompatActivity {
             } else {
                 Toast.makeText(this, "Failed to delete account. Please try again.", Toast.LENGTH_SHORT).show();
             }
+        }
+    }
+
+    private void showPasswordChangeFragment() {
+        Log.d("ProfileActivity", "showPasswordChangeFragment called");
+        if (fragmentContainer == null) {
+            Log.e("ProfileActivity", "fragmentContainer is null!");
+            return;
+        }
+        
+        Log.d("ProfileActivity", "Creating PasswordChangeFragment");
+        PasswordChangeFragment fragment = PasswordChangeFragment.newInstance();
+        fragment.setOnPasswordChangeListener(new PasswordChangeFragment.OnPasswordChangeListener() {
+            @Override
+            public void onPasswordChanged(boolean success) {
+                hidePasswordChangeFragment();
+            }
+
+            @Override
+            public void onBackPressed() {
+                hidePasswordChangeFragment();
+            }
+        });
+
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.replace(R.id.fragmentContainer, fragment);
+        transaction.commit();
+
+        // Show fragment container and hide main content
+        Log.d("ProfileActivity", "Setting fragment container visibility to VISIBLE");
+        fragmentContainer.setVisibility(View.VISIBLE);
+        isPasswordFragmentVisible = true;
+    }
+
+    private void hidePasswordChangeFragment() {
+        if (fragmentContainer == null) return;
+        
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        Fragment fragment = fragmentManager.findFragmentById(R.id.fragmentContainer);
+        if (fragment != null) {
+            FragmentTransaction transaction = fragmentManager.beginTransaction();
+            transaction.remove(fragment);
+            transaction.commit();
+        }
+
+        // Hide fragment container and show main content
+        fragmentContainer.setVisibility(View.GONE);
+        isPasswordFragmentVisible = false;
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (isPasswordFragmentVisible) {
+            hidePasswordChangeFragment();
+        } else {
+            super.onBackPressed();
         }
     }
 }

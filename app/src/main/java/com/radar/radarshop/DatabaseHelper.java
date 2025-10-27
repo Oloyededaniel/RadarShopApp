@@ -264,6 +264,31 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return rows > 0;
     }
 
+    public boolean verifyPassword(String email, String plainPassword) {
+        String normEmail = normalizeEmail(email);
+        if (normEmail.isEmpty() || plainPassword == null) return false;
+
+        String hashed = hashPassword(plainPassword);
+        if (hashed == null) return false;
+
+        try (Cursor c = getReadableDatabase().query(
+                TABLE_USERS,
+                new String[]{COL_PASSWORD},
+                COL_EMAIL + "=?",
+                new String[]{normEmail},
+                null, null, null)) {
+            if (c.moveToFirst()) {
+                String stored = c.getString(0);
+                return hashed.equals(stored);
+            }
+        }
+        return false;
+    }
+
+    public boolean updatePassword(String email, String newPlainPassword) {
+        return changePassword(email, newPlainPassword);
+    }
+
     public boolean deleteUser(String email) {
         String normEmail = normalizeEmail(email);
         if (normEmail.isEmpty()) return false;
