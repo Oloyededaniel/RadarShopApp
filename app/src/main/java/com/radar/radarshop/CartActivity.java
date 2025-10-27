@@ -20,5 +20,8 @@ public class CartActivity extends AppCompatActivity{
         btnCheckout = findViewById(R.id.btnCheckout);
         rvCart = findViewById(R.id.rvCart);
         db = new DatabaseHelper(this);
+        session = new SessionManager(this);
+
+
     }
 }
