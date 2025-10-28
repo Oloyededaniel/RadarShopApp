@@ -25,12 +25,14 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CheckoutActivity extends AppCompatActivity {
+public class CheckoutActivity extends AppCompatActivity implements OrderSuccessFragment.OnOrderSuccessListener {
     
     private ScrollView scrollView;
     private LinearLayout checkoutContainer;
@@ -558,25 +560,30 @@ public class CheckoutActivity extends AppCompatActivity {
     
     private void showOrderSuccess() {
         try {
-            // Create success animation
-            ObjectAnimator scaleAnim = ObjectAnimator.ofFloat(btnPlaceOrder, "scaleX", 1f, 1.1f, 1f);
-            ObjectAnimator alphaAnim = ObjectAnimator.ofFloat(btnPlaceOrder, "alpha", 1f, 0.7f, 1f);
+            // Hide the checkout content and show success fragment
+            scrollView.setVisibility(View.GONE);
             
-            scaleAnim.setDuration(300);
-            alphaAnim.setDuration(300);
+            // Create and show the success fragment
+            OrderSuccessFragment successFragment = OrderSuccessFragment.newInstance(total);
+            successFragment.setOnOrderSuccessListener(this);
             
-            scaleAnim.start();
-            alphaAnim.start();
-            
-            // Show success message
-            Toast.makeText(this, "Order placed successfully! 🎉", Toast.LENGTH_LONG).show();
-            
-            // Navigate back or to order confirmation
-            finish();
+            FragmentManager fragmentManager = getSupportFragmentManager();
+            fragmentManager.beginTransaction()
+                    .replace(android.R.id.content, successFragment)
+                    .commit();
+                    
         } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(this, "Order placed successfully! 🎉", Toast.LENGTH_LONG).show();
             finish();
         }
+    }
+    
+    @Override
+    public void onNavigateToOrders() {
+        // Navigate to OrdersActivity
+        Intent intent = new Intent(this, OrdersActivity.class);
+        startActivity(intent);
+        finish();
     }
 }

@@ -89,4 +89,7 @@
     <color name="cart_quantity_button_bg">#E0E0E0</color>
     <color name="cart_remove_button_bg">#F44336</color>
     <color name="cart_checkout_button_bg">#424242</color>
+    
+    <!-- Order Success Screen Colors -->
+    <color name="order_total_background">#F5F5F5</color>
 </resources>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="@color/white"
+    android:padding="32dp">
+
+    <!-- Success Icon -->
+    <ImageView
+        android:id="@+id/ivSuccessIcon"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_marginBottom="32dp"
+        android:background="@drawable/success_circle_background"
+        android:src="@drawable/ic_check_circle"
+        android:scaleType="centerInside"
+        android:padding="24dp" />
+
+    <!-- Main Heading -->
+    <TextView
+        android:id="@+id/tvSuccessTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Order Placed Successfully!"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary"
+        android:layout_marginBottom="16dp"
+        android:gravity="center" />
+
+    <!-- Confirmation Message -->
+    <TextView
+        android:id="@+id/tvSuccessMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Thank you for your purchase.\nYour order is being processed."
+        android:textSize="16sp"
+        android:textColor="@color/text_secondary"
+        android:layout_marginBottom="32dp"
+        android:gravity="center"
+        android:lineSpacingExtra="4dp" />
+
+    <!-- Order Total Section -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardOrderTotal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="32dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp"
+        app:cardBackgroundColor="@color/order_total_background">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/tvOrderTotalLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Order Total"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/tvOrderTotalAmount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="$675.55"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary" />
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <!-- Redirecting Message -->
+    <TextView
+        android:id="@+id/tvRedirectingMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Redirecting to your orders..."
+        android:textSize="16sp"
+        android:textColor="@color/text_secondary"
+        android:gravity="center" />
+
+</LinearLayout>
