@@ -3,6 +3,7 @@ package com.radar.radarshop;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.View;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -52,7 +53,9 @@ public class ShopActivity extends AppCompatActivity {
                     startActivity(new Intent(this, OrdersActivity.class));
                     return true;
                 } else if (id == R.id.nav_cart) {
-                    showCartFragment();
+                    Intent cartIntent = new Intent(this, CartActivity.class);
+                    cartIntent.putExtra("from_activity", "ShopActivity");
+                    startActivity(cartIntent);
                     return true;
                 } else if (id == R.id.nav_wishlist) {
                     startActivity(new Intent(this, WishlistActivity.class));
@@ -135,6 +138,13 @@ public class ShopActivity extends AppCompatActivity {
         }
         if (cartFragment != null) {
             cartFragment.refreshCart();
+        }
+    }
+    
+    // Method to handle start shopping button click from fragment layout
+    public void startShopping(View view) {
+        if (cartFragment != null) {
+            cartFragment.startShopping(view);
         }
     }
 }

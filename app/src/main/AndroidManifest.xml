@@ -25,7 +25,6 @@
         <activity
             android:name=".HomeActivity"
             android:exported="false" />
-        <activity android:name=".MainActivity" android:exported="false"/>
 
         <activity android:name=".ShopActivity" android:exported="false"/>
 
@@ -36,7 +35,6 @@
 
         <activity android:name=".CartActivity" android:exported="false"/>
         <activity android:name=".CheckoutActivity" android:exported="false"/>
-        <activity android:name=".CategoriesActivity" android:exported="false"/>
         <activity android:name=".OrdersActivity" android:exported="false"/>
         <activity android:name=".ProfileActivity" android:exported="false"/>
     </application>

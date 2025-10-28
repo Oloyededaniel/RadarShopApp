@@ -61,11 +61,17 @@ public class CheckoutActivity extends AppCompatActivity implements OrderSuccessF
     private Button btnPlaceOrder;
     private ImageButton btnBack;
     
+    // Save Notice
+    private LinearLayout layoutSaveNotice;
+    
     private List<CartItem> cartItems;
     private double subtotal = 0.0;
     private double shippingCost = 0.0;
     private double tax = 0.0;
     private double total = 0.0;
+    
+    private DatabaseHelper databaseHelper;
+    private SessionManager sessionManager;
     
     private DecimalFormat currencyFormat = new DecimalFormat("$#,##0.00");
     
@@ -77,6 +83,10 @@ public class CheckoutActivity extends AppCompatActivity implements OrderSuccessF
         setContentView(R.layout.activity_checkout);
         Toast.makeText(this, "CheckoutActivity: setContentView completed", Toast.LENGTH_SHORT).show();
         
+        // Initialize database and session
+        databaseHelper = new DatabaseHelper(this);
+        sessionManager = new SessionManager(this);
+        
         initializeViews();
         Toast.makeText(this, "CheckoutActivity: initializeViews completed", Toast.LENGTH_SHORT).show();
         
@@ -85,6 +95,9 @@ public class CheckoutActivity extends AppCompatActivity implements OrderSuccessF
         
         loadCartItems();
         Toast.makeText(this, "CheckoutActivity: loadCartItems completed", Toast.LENGTH_SHORT).show();
+        
+        loadSavedUserInfo();
+        Toast.makeText(this, "CheckoutActivity: loadSavedUserInfo completed", Toast.LENGTH_SHORT).show();
         
         setupListeners();
         Toast.makeText(this, "CheckoutActivity: setupListeners completed", Toast.LENGTH_SHORT).show();
@@ -153,6 +166,9 @@ public class CheckoutActivity extends AppCompatActivity implements OrderSuccessF
         // Action Buttons
         btnPlaceOrder = findViewById(R.id.btnPlaceOrder);
         btnBack = findViewById(R.id.btnBack);
+        
+        // Save Notice
+        layoutSaveNotice = findViewById(R.id.layoutSaveNotice);
         
         // Initialize cart items
         cartItems = new ArrayList<>();
@@ -258,6 +274,64 @@ public class CheckoutActivity extends AppCompatActivity implements OrderSuccessF
         cartItems.add(new CartItem(3, "Phone Case", "", 29.99, 2, "TechBrand", "Accessories"));
     }
     
+    private void loadSavedUserInfo() {
+        try {
+            String userEmail = sessionManager.getEmail();
+            if (userEmail != null && !userEmail.isEmpty()) {
+                // Load saved shipping address from user profile
+                DatabaseHelper.UserProfile profile = databaseHelper.getUserProfile(userEmail);
+                if (profile != null) {
+                    if (profile.fullName() != null && !profile.fullName().isEmpty()) {
+                        etFullName.setText(profile.fullName());
+                    }
+                    if (profile.street != null && !profile.street.isEmpty()) {
+                        etAddress.setText(profile.street);
+                    }
+                    if (profile.city != null && !profile.city.isEmpty()) {
+                        etCity.setText(profile.city);
+                    }
+                    if (profile.state != null && !profile.state.isEmpty()) {
+                        etState.setText(profile.state);
+                    }
+                    if (profile.zip != null && !profile.zip.isEmpty()) {
+                        etZipCode.setText(profile.zip);
+                    }
+                    if (profile.phone != null && !profile.phone.isEmpty()) {
+                        etPhone.setText(profile.phone);
+                    }
+                }
+                
+                // Load saved payment information
+                DatabaseHelper.PaymentInfo paymentInfo = databaseHelper.getDefaultPaymentInfo(userEmail);
+                if (paymentInfo != null) {
+                    // Set payment method
+                    if ("credit_card".equals(paymentInfo.paymentMethod)) {
+                        rbCreditCard.setChecked(true);
+                    } else if ("debit_card".equals(paymentInfo.paymentMethod)) {
+                        rbDebitCard.setChecked(true);
+                    }
+                    
+                    // Set payment details
+                    etCardNumber.setText(paymentInfo.cardNumber);
+                    etExpiryDate.setText(paymentInfo.expiryDate);
+                    etCVV.setText(paymentInfo.cvv);
+                    etCardholderName.setText(paymentInfo.cardholderName);
+                    
+                    // Update payment fields visibility
+                    updatePaymentFieldsVisibility();
+                }
+                
+                // Show save notice if user has saved information
+                if (profile != null || paymentInfo != null) {
+                    layoutSaveNotice.setVisibility(View.VISIBLE);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Error loading saved information", Toast.LENGTH_SHORT).show();
+        }
+    }
+    
     private void setupListeners() {
         // Shipping method selection
         rgShippingMethod.setOnCheckedChangeListener((group, checkedId) -> {
@@ -327,6 +401,24 @@ public class CheckoutActivity extends AppCompatActivity implements OrderSuccessF
             @Override
             public void afterTextChanged(Editable s) {}
         });
+        
+        // Postal code formatting
+        etZipCode.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String formatted = formatPostalCode(s.toString());
+                if (!formatted.equals(s.toString())) {
+                    etZipCode.setText(formatted);
+                    etZipCode.setSelection(formatted.length());
+                }
+            }
+            
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
     }
     
     private String formatCardNumber(String input) {
@@ -347,6 +439,14 @@ public class CheckoutActivity extends AppCompatActivity implements OrderSuccessF
         String cleaned = input.replaceAll("/", "");
         if (cleaned.length() >= 2) {
             return cleaned.substring(0, 2) + "/" + cleaned.substring(2, Math.min(4, cleaned.length()));
+        }
+        return cleaned;
+    }
+    
+    private String formatPostalCode(String input) {
+        String cleaned = input.replaceAll("\\s", "").toUpperCase();
+        if (cleaned.length() >= 3) {
+            return cleaned.substring(0, 3) + " " + cleaned.substring(3, Math.min(6, cleaned.length()));
         }
         return cleaned;
     }
@@ -471,14 +571,14 @@ public class CheckoutActivity extends AppCompatActivity implements OrderSuccessF
         }
         
         if (etState.getText().toString().trim().isEmpty()) {
-            tilState.setError("State is required");
+            tilState.setError("Province is required");
             isValid = false;
         } else {
             tilState.setError(null);
         }
         
         if (etZipCode.getText().toString().trim().isEmpty()) {
-            tilZipCode.setError("ZIP code is required");
+            tilZipCode.setError("Postal code is required");
             isValid = false;
         } else {
             tilZipCode.setError(null);
@@ -535,11 +635,51 @@ public class CheckoutActivity extends AppCompatActivity implements OrderSuccessF
             progressBar.setVisibility(View.VISIBLE);
             btnPlaceOrder.setEnabled(false);
             
+            // Create order in database
+            String userEmail = sessionManager.getEmail();
+            if (userEmail == null || userEmail.isEmpty()) {
+                userEmail = "demo@example.com"; // Fallback for demo
+            }
+            
+            // Get shipping method
+            String shippingMethod = "standard";
+            int checkedShippingId = rgShippingMethod.getCheckedRadioButtonId();
+            if (checkedShippingId == R.id.rbExpress) {
+                shippingMethod = "express";
+            } else if (checkedShippingId == R.id.rbOvernight) {
+                shippingMethod = "overnight";
+            }
+            
+            // Get shipping address
+            String fullName = etFullName.getText().toString().trim();
+            String address = etAddress.getText().toString().trim();
+            String city = etCity.getText().toString().trim();
+            String state = etState.getText().toString().trim();
+            String zipCode = etZipCode.getText().toString().trim();
+            String phone = etPhone.getText().toString().trim();
+            
+            // Create order in database
+            long orderId = databaseHelper.createOrder(userEmail, cartItems, shippingMethod,
+                    subtotal, shippingCost, tax, total, fullName, address, city, state, zipCode, phone);
+            
+            if (orderId == -1) {
+                Toast.makeText(this, "Failed to create order", Toast.LENGTH_SHORT).show();
+                progressBar.setVisibility(View.GONE);
+                btnPlaceOrder.setEnabled(true);
+                return;
+            }
+            
             // Simulate order processing
             btnPlaceOrder.postDelayed(() -> {
                 try {
                     progressBar.setVisibility(View.GONE);
                     btnPlaceOrder.setEnabled(true);
+                    
+                    // Clear cart after successful order processing
+                    clearCartAfterOrder();
+                    
+                    // Save user information for future use
+                    saveUserInfo();
                     
                     // Show success animation
                     showOrderSuccess();
@@ -555,6 +695,70 @@ public class CheckoutActivity extends AppCompatActivity implements OrderSuccessF
             Toast.makeText(this, "Error processing order", Toast.LENGTH_SHORT).show();
             progressBar.setVisibility(View.GONE);
             btnPlaceOrder.setEnabled(true);
+        }
+    }
+    
+    private void clearCartAfterOrder() {
+        try {
+            String userEmail = sessionManager.getEmail();
+            if (userEmail != null && !userEmail.isEmpty()) {
+                boolean success = databaseHelper.clearCart(userEmail);
+                if (success) {
+                    Toast.makeText(this, "Cart cleared successfully", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this, "Failed to clear cart", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                // For demo purposes, just show a message
+                Toast.makeText(this, "Cart cleared (demo mode)", Toast.LENGTH_SHORT).show();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Error clearing cart", Toast.LENGTH_SHORT).show();
+        }
+    }
+    
+    private void saveUserInfo() {
+        try {
+            String userEmail = sessionManager.getEmail();
+            if (userEmail != null && !userEmail.isEmpty()) {
+                // Save shipping address to user profile
+                String fullName = etFullName.getText().toString().trim();
+                String address = etAddress.getText().toString().trim();
+                String city = etCity.getText().toString().trim();
+                String state = etState.getText().toString().trim();
+                String zipCode = etZipCode.getText().toString().trim();
+                String phone = etPhone.getText().toString().trim();
+                
+                // Split full name into first and last name
+                String[] nameParts = fullName.split(" ", 2);
+                String firstName = nameParts.length > 0 ? nameParts[0] : "";
+                String lastName = nameParts.length > 1 ? nameParts[1] : "";
+                
+                // Update user profile with address information
+                databaseHelper.updateProfile(userEmail, firstName, lastName, phone, address, city, state, zipCode, "US");
+                
+                // Save payment information
+                int paymentMethod = rgPaymentMethod.getCheckedRadioButtonId();
+                if (paymentMethod == R.id.rbCreditCard || paymentMethod == R.id.rbDebitCard) {
+                    String paymentMethodStr = (paymentMethod == R.id.rbCreditCard) ? "credit_card" : "debit_card";
+                    String cardNumber = etCardNumber.getText().toString().trim();
+                    String expiryDate = etExpiryDate.getText().toString().trim();
+                    String cvv = etCVV.getText().toString().trim();
+                    String cardholderName = etCardholderName.getText().toString().trim();
+                    
+                    // Save payment info as default
+                    boolean success = databaseHelper.savePaymentInfo(userEmail, paymentMethodStr, cardNumber, 
+                            expiryDate, cvv, cardholderName, true);
+                    
+                    if (success) {
+                        Toast.makeText(this, "Information saved for future use", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Error saving information", Toast.LENGTH_SHORT).show();
         }
     }
     

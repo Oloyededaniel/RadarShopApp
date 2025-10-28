@@ -364,6 +364,7 @@ public class ProductDetailActivity extends AppCompatActivity {
         // Navigate to checkout/cart
         Intent intent = new Intent(this, CartActivity.class);
         intent.putExtra("checkout_mode", true);
+        intent.putExtra("from_activity", "ProductDetailActivity");
         startActivity(intent);
     }
 

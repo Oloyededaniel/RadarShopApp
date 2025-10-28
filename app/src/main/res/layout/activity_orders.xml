@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/bg_light"
-    android:padding="16dp">
+    android:background="@color/bg_light">
 
     <!-- Header -->
     <LinearLayout
@@ -12,7 +12,8 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:layout_marginBottom="24dp">
+        android:padding="16dp"
+        android:background="@color/primary_dark">
 
         <TextView
             android:id="@+id/tvOrdersTitle"
@@ -20,29 +21,70 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Your Orders"
-            android:textSize="28sp"
+            android:textSize="24sp"
             android:textStyle="bold"
-            android:textColor="@color/text_primary"
+            android:textColor="@android:color/white"
             android:fontFamily="sans-serif-medium" />
 
     </LinearLayout>
 
-    <!-- Content -->
+    <!-- Orders List -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewOrders"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="16dp"
+        android:clipToPadding="false"
+        android:scrollbars="vertical" />
+
+    <!-- Empty State -->
     <LinearLayout
+        android:id="@+id/layoutEmptyState"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:orientation="vertical"
-        android:gravity="center">
+        android:gravity="center"
+        android:padding="32dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@drawable/ic_shopping_bag"
+            android:alpha="0.3"
+            android:layout_marginBottom="16dp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Orders will be displayed here"
+            android:text="No Orders Yet"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Your order history will appear here"
             android:textSize="16sp"
             android:textColor="@color/text_secondary"
             android:gravity="center" />
 
     </LinearLayout>
+
+    <!-- Bottom Navigation -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNav"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:layout_gravity="bottom"
+        android:background="@android:color/white"
+        app:menu="@menu/menu_bottom_nav"
+        app:itemIconTint="@color/nav_icon_selector"
+        app:itemTextColor="@color/nav_icon_selector"
+        app:labelVisibilityMode="labeled" />
 
 </LinearLayout>

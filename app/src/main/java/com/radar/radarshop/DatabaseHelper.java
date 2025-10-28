@@ -15,7 +15,7 @@ import java.util.Locale;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DB_NAME = "radarshop.db";
-    private static final int DB_VERSION = 7;
+    private static final int DB_VERSION = 9;
 
     // Users
     public static final String TABLE_USERS = "users";
@@ -84,6 +84,49 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COL_REVIEW_PRODUCT_ID = "product_id";
     public static final String COL_REVIEW_RATING = "rating";
     public static final String COL_REVIEW_COMMENT = "comment";
+
+    // Payment Information
+    public static final String TABLE_PAYMENT_INFO = "payment_info";
+    public static final String COL_PAYMENT_ID = "id";
+    public static final String COL_PAYMENT_EMAIL = "user_email";
+    public static final String COL_PAYMENT_METHOD = "payment_method"; // "credit_card", "debit_card", "paypal", etc.
+    public static final String COL_CARD_NUMBER = "card_number";
+    public static final String COL_EXPIRY_DATE = "expiry_date";
+    public static final String COL_CVV = "cvv";
+    public static final String COL_CARDHOLDER_NAME = "cardholder_name";
+    public static final String COL_IS_DEFAULT = "is_default"; // 1 for default payment method
+
+    // Orders
+    public static final String TABLE_ORDERS = "orders";
+    public static final String COL_ORDER_ID = "id";
+    public static final String COL_ORDER_EMAIL = "user_email";
+    public static final String COL_ORDER_NUMBER = "order_number";
+    public static final String COL_ORDER_DATE = "order_date";
+    public static final String COL_ORDER_STATUS = "status"; // "processing", "shipped", "delivered"
+    public static final String COL_ORDER_TOTAL = "total_amount";
+    public static final String COL_ORDER_ITEMS_COUNT = "items_count";
+    public static final String COL_ORDER_TRACKING = "tracking_number";
+    public static final String COL_ORDER_SHIPPING_METHOD = "shipping_method";
+    public static final String COL_ORDER_SHIPPING_COST = "shipping_cost";
+    public static final String COL_ORDER_TAX = "tax_amount";
+    public static final String COL_ORDER_SUBTOTAL = "subtotal";
+    public static final String COL_ORDER_ADDRESS = "shipping_address";
+    public static final String COL_ORDER_CITY = "shipping_city";
+    public static final String COL_ORDER_STATE = "shipping_state";
+    public static final String COL_ORDER_ZIP = "shipping_zip";
+    public static final String COL_ORDER_PHONE = "shipping_phone";
+    public static final String COL_ORDER_CREATED_AT = "created_at";
+    public static final String COL_ORDER_UPDATED_AT = "updated_at";
+
+    // Order Items
+    public static final String TABLE_ORDER_ITEMS = "order_items";
+    public static final String COL_ORDER_ITEM_ID = "id";
+    public static final String COL_ORDER_ITEM_ORDER_ID = "order_id";
+    public static final String COL_ORDER_ITEM_PRODUCT_ID = "product_id";
+    public static final String COL_ORDER_ITEM_PRODUCT_NAME = "product_name";
+    public static final String COL_ORDER_ITEM_QUANTITY = "quantity";
+    public static final String COL_ORDER_ITEM_PRICE = "price";
+    public static final String COL_ORDER_ITEM_TOTAL = "total_price";
 
     public DatabaseHelper(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
@@ -182,6 +225,59 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         COL_REVIEW_PRODUCT_ID + " INTEGER, " +
                         COL_REVIEW_RATING + " INTEGER, " +
                         COL_REVIEW_COMMENT + " TEXT" +
+                        ");"
+        );
+
+        // Payment Information
+        db.execSQL(
+                "CREATE TABLE " + TABLE_PAYMENT_INFO + " (" +
+                        COL_PAYMENT_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                        COL_PAYMENT_EMAIL + " TEXT, " +
+                        COL_PAYMENT_METHOD + " TEXT, " +
+                        COL_CARD_NUMBER + " TEXT, " +
+                        COL_EXPIRY_DATE + " TEXT, " +
+                        COL_CVV + " TEXT, " +
+                        COL_CARDHOLDER_NAME + " TEXT, " +
+                        COL_IS_DEFAULT + " INTEGER DEFAULT 0" +
+                        ");"
+        );
+
+        // Orders
+        db.execSQL(
+                "CREATE TABLE " + TABLE_ORDERS + " (" +
+                        COL_ORDER_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                        COL_ORDER_EMAIL + " TEXT, " +
+                        COL_ORDER_NUMBER + " TEXT UNIQUE NOT NULL, " +
+                        COL_ORDER_DATE + " TEXT, " +
+                        COL_ORDER_STATUS + " TEXT DEFAULT 'processing', " +
+                        COL_ORDER_TOTAL + " REAL NOT NULL, " +
+                        COL_ORDER_ITEMS_COUNT + " INTEGER DEFAULT 0, " +
+                        COL_ORDER_TRACKING + " TEXT, " +
+                        COL_ORDER_SHIPPING_METHOD + " TEXT, " +
+                        COL_ORDER_SHIPPING_COST + " REAL DEFAULT 0, " +
+                        COL_ORDER_TAX + " REAL DEFAULT 0, " +
+                        COL_ORDER_SUBTOTAL + " REAL DEFAULT 0, " +
+                        COL_ORDER_ADDRESS + " TEXT, " +
+                        COL_ORDER_CITY + " TEXT, " +
+                        COL_ORDER_STATE + " TEXT, " +
+                        COL_ORDER_ZIP + " TEXT, " +
+                        COL_ORDER_PHONE + " TEXT, " +
+                        COL_ORDER_CREATED_AT + " DATETIME DEFAULT CURRENT_TIMESTAMP, " +
+                        COL_ORDER_UPDATED_AT + " DATETIME DEFAULT CURRENT_TIMESTAMP" +
+                        ");"
+        );
+
+        // Order Items
+        db.execSQL(
+                "CREATE TABLE " + TABLE_ORDER_ITEMS + " (" +
+                        COL_ORDER_ITEM_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                        COL_ORDER_ITEM_ORDER_ID + " INTEGER NOT NULL, " +
+                        COL_ORDER_ITEM_PRODUCT_ID + " INTEGER NOT NULL, " +
+                        COL_ORDER_ITEM_PRODUCT_NAME + " TEXT NOT NULL, " +
+                        COL_ORDER_ITEM_QUANTITY + " INTEGER NOT NULL, " +
+                        COL_ORDER_ITEM_PRICE + " REAL NOT NULL, " +
+                        COL_ORDER_ITEM_TOTAL + " REAL NOT NULL, " +
+                        "FOREIGN KEY(" + COL_ORDER_ITEM_ORDER_ID + ") REFERENCES " + TABLE_ORDERS + "(" + COL_ORDER_ID + ") ON DELETE CASCADE" +
                         ");"
         );
 
@@ -366,14 +462,76 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_CATEGORIES);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_PRODUCTS);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_PRODUCT_IMAGES);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_WISHLIST);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_CART);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_REVIEWS);
-        onCreate(db);
+        if (oldVersion < 9) {
+            // Add orders and order_items tables for version 9
+            db.execSQL(
+                    "CREATE TABLE " + TABLE_ORDERS + " (" +
+                            COL_ORDER_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                            COL_ORDER_EMAIL + " TEXT, " +
+                            COL_ORDER_NUMBER + " TEXT UNIQUE NOT NULL, " +
+                            COL_ORDER_DATE + " TEXT, " +
+                            COL_ORDER_STATUS + " TEXT DEFAULT 'processing', " +
+                            COL_ORDER_TOTAL + " REAL NOT NULL, " +
+                            COL_ORDER_ITEMS_COUNT + " INTEGER DEFAULT 0, " +
+                            COL_ORDER_TRACKING + " TEXT, " +
+                            COL_ORDER_SHIPPING_METHOD + " TEXT, " +
+                            COL_ORDER_SHIPPING_COST + " REAL DEFAULT 0, " +
+                            COL_ORDER_TAX + " REAL DEFAULT 0, " +
+                            COL_ORDER_SUBTOTAL + " REAL DEFAULT 0, " +
+                            COL_ORDER_ADDRESS + " TEXT, " +
+                            COL_ORDER_CITY + " TEXT, " +
+                            COL_ORDER_STATE + " TEXT, " +
+                            COL_ORDER_ZIP + " TEXT, " +
+                            COL_ORDER_PHONE + " TEXT, " +
+                            COL_ORDER_CREATED_AT + " DATETIME DEFAULT CURRENT_TIMESTAMP, " +
+                            COL_ORDER_UPDATED_AT + " DATETIME DEFAULT CURRENT_TIMESTAMP" +
+                            ");"
+            );
+            
+            db.execSQL(
+                    "CREATE TABLE " + TABLE_ORDER_ITEMS + " (" +
+                            COL_ORDER_ITEM_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                            COL_ORDER_ITEM_ORDER_ID + " INTEGER NOT NULL, " +
+                            COL_ORDER_ITEM_PRODUCT_ID + " INTEGER NOT NULL, " +
+                            COL_ORDER_ITEM_PRODUCT_NAME + " TEXT NOT NULL, " +
+                            COL_ORDER_ITEM_QUANTITY + " INTEGER NOT NULL, " +
+                            COL_ORDER_ITEM_PRICE + " REAL NOT NULL, " +
+                            COL_ORDER_ITEM_TOTAL + " REAL NOT NULL, " +
+                            "FOREIGN KEY(" + COL_ORDER_ITEM_ORDER_ID + ") REFERENCES " + TABLE_ORDERS + "(" + COL_ORDER_ID + ") ON DELETE CASCADE" +
+                            ");"
+            );
+        }
+        
+        if (oldVersion < 8) {
+            // Add payment info table for version 8
+            db.execSQL(
+                    "CREATE TABLE " + TABLE_PAYMENT_INFO + " (" +
+                            COL_PAYMENT_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                            COL_PAYMENT_EMAIL + " TEXT, " +
+                            COL_PAYMENT_METHOD + " TEXT, " +
+                            COL_CARD_NUMBER + " TEXT, " +
+                            COL_EXPIRY_DATE + " TEXT, " +
+                            COL_CVV + " TEXT, " +
+                            COL_CARDHOLDER_NAME + " TEXT, " +
+                            COL_IS_DEFAULT + " INTEGER DEFAULT 0" +
+                            ");"
+            );
+        }
+        
+        // For major version changes, recreate all tables
+        if (oldVersion < 7) {
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_CATEGORIES);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_PRODUCTS);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_PRODUCT_IMAGES);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_WISHLIST);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_CART);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_REVIEWS);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_PAYMENT_INFO);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_ORDERS);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_ORDER_ITEMS);
+            onCreate(db);
+        }
     }
 
     /* AUTH */
@@ -887,6 +1045,102 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return updateCartQuantity(userEmail, productId, newQuantity);
     }
 
+    public boolean clearCart(String userEmail) {
+        int rows = getWritableDatabase().delete(
+                TABLE_CART,
+                COL_CART_EMAIL + "=?",
+                new String[]{userEmail});
+        return rows > 0;
+    }
+
+    /* PAYMENT INFORMATION */
+
+    public boolean savePaymentInfo(String userEmail, String paymentMethod, String cardNumber, 
+                                 String expiryDate, String cvv, String cardholderName, boolean isDefault) {
+        String normEmail = normalizeEmail(userEmail);
+        if (normEmail.isEmpty()) return false;
+        
+        // If this is set as default, remove default from other payment methods
+        if (isDefault) {
+            ContentValues clearDefault = new ContentValues();
+            clearDefault.put(COL_IS_DEFAULT, 0);
+            getWritableDatabase().update(TABLE_PAYMENT_INFO, clearDefault, 
+                    COL_PAYMENT_EMAIL + "=?", new String[]{normEmail});
+        }
+        
+        ContentValues cv = new ContentValues();
+        cv.put(COL_PAYMENT_EMAIL, normEmail);
+        cv.put(COL_PAYMENT_METHOD, paymentMethod);
+        cv.put(COL_CARD_NUMBER, cardNumber);
+        cv.put(COL_EXPIRY_DATE, expiryDate);
+        cv.put(COL_CVV, cvv);
+        cv.put(COL_CARDHOLDER_NAME, cardholderName);
+        cv.put(COL_IS_DEFAULT, isDefault ? 1 : 0);
+        
+        long row = getWritableDatabase().insert(TABLE_PAYMENT_INFO, null, cv);
+        return row != -1;
+    }
+
+    public PaymentInfo getDefaultPaymentInfo(String userEmail) {
+        String normEmail = normalizeEmail(userEmail);
+        if (normEmail.isEmpty()) return null;
+        
+        String sql = "SELECT " + COL_PAYMENT_METHOD + ", " + COL_CARD_NUMBER + ", " + 
+                    COL_EXPIRY_DATE + ", " + COL_CVV + ", " + COL_CARDHOLDER_NAME +
+                    " FROM " + TABLE_PAYMENT_INFO +
+                    " WHERE " + COL_PAYMENT_EMAIL + "=? AND " + COL_IS_DEFAULT + "=1";
+        
+        try (Cursor c = getReadableDatabase().rawQuery(sql, new String[]{normEmail})) {
+            if (c.moveToFirst()) {
+                return new PaymentInfo(
+                    c.getString(0), // paymentMethod
+                    c.getString(1), // cardNumber
+                    c.getString(2), // expiryDate
+                    c.getString(3), // cvv
+                    c.getString(4)  // cardholderName
+                );
+            }
+        }
+        return null;
+    }
+
+    public boolean hasPaymentInfo(String userEmail) {
+        String normEmail = normalizeEmail(userEmail);
+        if (normEmail.isEmpty()) return false;
+        
+        String sql = "SELECT COUNT(*) FROM " + TABLE_PAYMENT_INFO + 
+                    " WHERE " + COL_PAYMENT_EMAIL + "=?";
+        
+        try (Cursor c = getReadableDatabase().rawQuery(sql, new String[]{normEmail})) {
+            if (c.moveToFirst()) {
+                return c.getInt(0) > 0;
+            }
+        }
+        return false;
+    }
+
+    public static class PaymentInfo {
+        public final String paymentMethod;
+        public final String cardNumber;
+        public final String expiryDate;
+        public final String cvv;
+        public final String cardholderName;
+        
+        public PaymentInfo(String paymentMethod, String cardNumber, String expiryDate, 
+                          String cvv, String cardholderName) {
+            this.paymentMethod = paymentMethod;
+            this.cardNumber = cardNumber;
+            this.expiryDate = expiryDate;
+            this.cvv = cvv;
+            this.cardholderName = cardholderName;
+        }
+        
+        public String getMaskedCardNumber() {
+            if (cardNumber == null || cardNumber.length() < 4) return "****";
+            return "**** **** **** " + cardNumber.substring(cardNumber.length() - 4);
+        }
+    }
+
     /* REVIEWS */
 
     public boolean addReview(String userEmail, int productId, int rating, String comment) {
@@ -1288,5 +1542,251 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         insertProduct("Throw Pillow","18x18, soft cover",12.49,"Home");
         insertProduct("Fantasy Novel","Hardcover, 420 pages",14.99,"Books");
         insertProduct("Cookbook","100 easy recipes",18.99,"Books");
+    }
+
+    /* ORDERS */
+
+    public static class Order {
+        public final int id;
+        public final String userEmail;
+        public final String orderNumber;
+        public final String orderDate;
+        public final String status;
+        public final double totalAmount;
+        public final int itemsCount;
+        public final String trackingNumber;
+        public final String shippingMethod;
+        public final double shippingCost;
+        public final double taxAmount;
+        public final double subtotal;
+        public final String shippingAddress;
+        public final String shippingCity;
+        public final String shippingState;
+        public final String shippingZip;
+        public final String shippingPhone;
+        public final String createdAt;
+        public final String updatedAt;
+
+        public Order(int id, String userEmail, String orderNumber, String orderDate, String status,
+                    double totalAmount, int itemsCount, String trackingNumber, String shippingMethod,
+                    double shippingCost, double taxAmount, double subtotal, String shippingAddress,
+                    String shippingCity, String shippingState, String shippingZip, String shippingPhone,
+                    String createdAt, String updatedAt) {
+            this.id = id;
+            this.userEmail = userEmail;
+            this.orderNumber = orderNumber;
+            this.orderDate = orderDate;
+            this.status = status;
+            this.totalAmount = totalAmount;
+            this.itemsCount = itemsCount;
+            this.trackingNumber = trackingNumber;
+            this.shippingMethod = shippingMethod;
+            this.shippingCost = shippingCost;
+            this.taxAmount = taxAmount;
+            this.subtotal = subtotal;
+            this.shippingAddress = shippingAddress;
+            this.shippingCity = shippingCity;
+            this.shippingState = shippingState;
+            this.shippingZip = shippingZip;
+            this.shippingPhone = shippingPhone;
+            this.createdAt = createdAt;
+            this.updatedAt = updatedAt;
+        }
+    }
+
+    public static class OrderItem {
+        public final int id;
+        public final int orderId;
+        public final int productId;
+        public final String productName;
+        public final int quantity;
+        public final double price;
+        public final double totalPrice;
+
+        public OrderItem(int id, int orderId, int productId, String productName, 
+                       int quantity, double price, double totalPrice) {
+            this.id = id;
+            this.orderId = orderId;
+            this.productId = productId;
+            this.productName = productName;
+            this.quantity = quantity;
+            this.price = price;
+            this.totalPrice = totalPrice;
+        }
+    }
+
+    public long createOrder(String userEmail, List<CartItem> cartItems, String shippingMethod,
+                           double subtotal, double shippingCost, double tax, double total,
+                           String fullName, String address, String city, String state, 
+                           String zipCode, String phone) {
+        try {
+            SQLiteDatabase db = getWritableDatabase();
+            db.beginTransaction();
+            
+            try {
+                // Generate order number
+                String orderNumber = generateOrderNumber();
+                String orderDate = java.text.DateFormat.getDateTimeInstance().format(new java.util.Date());
+                String trackingNumber = generateTrackingNumber();
+                
+                // Create order
+                ContentValues orderValues = new ContentValues();
+                orderValues.put(COL_ORDER_EMAIL, userEmail);
+                orderValues.put(COL_ORDER_NUMBER, orderNumber);
+                orderValues.put(COL_ORDER_DATE, orderDate);
+                orderValues.put(COL_ORDER_STATUS, "processing");
+                orderValues.put(COL_ORDER_TOTAL, total);
+                orderValues.put(COL_ORDER_ITEMS_COUNT, cartItems.size());
+                orderValues.put(COL_ORDER_TRACKING, trackingNumber);
+                orderValues.put(COL_ORDER_SHIPPING_METHOD, shippingMethod);
+                orderValues.put(COL_ORDER_SHIPPING_COST, shippingCost);
+                orderValues.put(COL_ORDER_TAX, tax);
+                orderValues.put(COL_ORDER_SUBTOTAL, subtotal);
+                orderValues.put(COL_ORDER_ADDRESS, address);
+                orderValues.put(COL_ORDER_CITY, city);
+                orderValues.put(COL_ORDER_STATE, state);
+                orderValues.put(COL_ORDER_ZIP, zipCode);
+                orderValues.put(COL_ORDER_PHONE, phone);
+                
+                long orderId = db.insert(TABLE_ORDERS, null, orderValues);
+                
+                if (orderId == -1) {
+                    return -1;
+                }
+                
+                // Create order items
+                for (CartItem item : cartItems) {
+                    ContentValues itemValues = new ContentValues();
+                    itemValues.put(COL_ORDER_ITEM_ORDER_ID, orderId);
+                    itemValues.put(COL_ORDER_ITEM_PRODUCT_ID, item.getProductId());
+                    itemValues.put(COL_ORDER_ITEM_PRODUCT_NAME, item.getProductName());
+                    itemValues.put(COL_ORDER_ITEM_QUANTITY, item.getQuantity());
+                    itemValues.put(COL_ORDER_ITEM_PRICE, item.getPrice());
+                    itemValues.put(COL_ORDER_ITEM_TOTAL, item.getTotalPrice());
+                    
+                    long itemId = db.insert(TABLE_ORDER_ITEMS, null, itemValues);
+                    if (itemId == -1) {
+                        db.endTransaction();
+                        return -1;
+                    }
+                }
+                
+                db.setTransactionSuccessful();
+                return orderId;
+                
+            } finally {
+                db.endTransaction();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return -1;
+        }
+    }
+
+    public List<Order> getUserOrders(String userEmail) {
+        ArrayList<Order> orders = new ArrayList<>();
+        String sql = "SELECT * FROM " + TABLE_ORDERS + 
+                    " WHERE " + COL_ORDER_EMAIL + " = ?" +
+                    " ORDER BY " + COL_ORDER_CREATED_AT + " DESC";
+        
+        try (Cursor c = getReadableDatabase().rawQuery(sql, new String[]{userEmail})) {
+            while (c.moveToNext()) {
+                int id = c.getInt(0);
+                String email = c.getString(1);
+                String orderNumber = c.getString(2);
+                String orderDate = c.getString(3);
+                String status = c.getString(4);
+                double totalAmount = c.getDouble(5);
+                int itemsCount = c.getInt(6);
+                String trackingNumber = c.getString(7);
+                String shippingMethod = c.getString(8);
+                double shippingCost = c.getDouble(9);
+                double taxAmount = c.getDouble(10);
+                double subtotal = c.getDouble(11);
+                String shippingAddress = c.getString(12);
+                String shippingCity = c.getString(13);
+                String shippingState = c.getString(14);
+                String shippingZip = c.getString(15);
+                String shippingPhone = c.getString(16);
+                String createdAt = c.getString(17);
+                String updatedAt = c.getString(18);
+                
+                orders.add(new Order(id, email, orderNumber, orderDate, status, totalAmount,
+                                   itemsCount, trackingNumber, shippingMethod, shippingCost,
+                                   taxAmount, subtotal, shippingAddress, shippingCity,
+                                   shippingState, shippingZip, shippingPhone, createdAt, updatedAt));
+            }
+        }
+        return orders;
+    }
+
+    public List<OrderItem> getOrderItems(int orderId) {
+        ArrayList<OrderItem> items = new ArrayList<>();
+        String sql = "SELECT * FROM " + TABLE_ORDER_ITEMS + 
+                    " WHERE " + COL_ORDER_ITEM_ORDER_ID + " = ?";
+        
+        try (Cursor c = getReadableDatabase().rawQuery(sql, new String[]{String.valueOf(orderId)})) {
+            while (c.moveToNext()) {
+                int id = c.getInt(0);
+                int orderIdValue = c.getInt(1);
+                int productId = c.getInt(2);
+                String productName = c.getString(3);
+                int quantity = c.getInt(4);
+                double price = c.getDouble(5);
+                double totalPrice = c.getDouble(6);
+                
+                items.add(new OrderItem(id, orderIdValue, productId, productName,
+                                      quantity, price, totalPrice));
+            }
+        }
+        return items;
+    }
+
+    public boolean updateOrderStatus(int orderId, String newStatus) {
+        ContentValues cv = new ContentValues();
+        cv.put(COL_ORDER_STATUS, newStatus);
+        cv.put(COL_ORDER_UPDATED_AT, "CURRENT_TIMESTAMP");
+        
+        int rows = getWritableDatabase().update(TABLE_ORDERS, cv, 
+                                               COL_ORDER_ID + "=?", 
+                                               new String[]{String.valueOf(orderId)});
+        return rows > 0;
+    }
+
+    private String generateOrderNumber() {
+        return "ORD-" + System.currentTimeMillis();
+    }
+
+    private String generateTrackingNumber() {
+        return "TRK" + (int)(Math.random() * 1000000000);
+    }
+
+    // Method to create sample orders for demo purposes
+    public void createSampleOrders(String userEmail) {
+        if (userEmail == null || userEmail.isEmpty()) {
+            userEmail = "demo@example.com";
+        }
+        
+        // Create sample cart items
+        List<CartItem> sampleItems1 = new ArrayList<>();
+        sampleItems1.add(new CartItem(1, "Wireless Headphones", "", 99.99, 1, "TechBrand", "Electronics"));
+        sampleItems1.add(new CartItem(2, "Smart Watch", "", 199.99, 1, "TechBrand", "Electronics"));
+        
+        List<CartItem> sampleItems2 = new ArrayList<>();
+        sampleItems2.add(new CartItem(3, "Phone Case", "", 29.99, 2, "TechBrand", "Accessories"));
+        
+        List<CartItem> sampleItems3 = new ArrayList<>();
+        sampleItems3.add(new CartItem(4, "Running Shoes", "", 59.99, 1, "SportMax", "Sportswear"));
+        sampleItems3.add(new CartItem(5, "Coffee Mug", "", 12.99, 3, "HomeStyle", "Kitchen"));
+        
+        // Create orders with different statuses and shipping methods
+        createOrder(userEmail, sampleItems1, "overnight", 299.98, 24.99, 24.0, 348.97,
+                "John Doe", "123 Main St", "New York", "NY", "10001", "555-0123");
+        
+        createOrder(userEmail, sampleItems2, "express", 29.99, 12.99, 3.44, 46.42,
+                "John Doe", "123 Main St", "New York", "NY", "10001", "555-0123");
+        
+        createOrder(userEmail, sampleItems3, "standard", 72.98, 5.99, 6.32, 85.29,
+                "John Doe", "123 Main St", "New York", "NY", "10001", "555-0123");
     }
 }

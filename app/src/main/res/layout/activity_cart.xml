@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/cart_background">
+    android:background="@android:color/white">
 
     <!-- Dark Header -->
     <LinearLayout
@@ -12,20 +12,21 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:background="@color/cart_header_dark"
+        android:background="@android:color/black"
         android:padding="20dp"
         android:elevation="4dp">
 
         <ImageView
+            android:id="@+id/btnBack"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:src="@drawable/ic_arrow_back"
+            android:src="@drawable/back_arrow"
             android:tint="@android:color/white"
             android:layout_marginEnd="12dp"
             android:clickable="true"
             android:focusable="true"
             android:background="?attr/selectableItemBackground"
-            android:onClick="onBackPressed" />
+            android:onClick="handleBackClick" />
 
         <TextView
             android:layout_width="0dp"
@@ -35,13 +36,14 @@
             android:textSize="20sp"
             android:textStyle="bold"
             android:textColor="@android:color/white"
-            android:fontFamily="sans-serif-medium" />
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center" />
 
         <TextView
             android:id="@+id/tvItemCount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/cart_item_count_badge"
+            android:background="@drawable/button_outline_background"
             android:text="3 items"
             android:textColor="@android:color/white"
             android:textSize="12sp"
@@ -58,7 +60,8 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:fillViewport="true">
+        android:fillViewport="true"
+        android:background="@android:color/white">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -89,7 +92,7 @@
                     android:src="@drawable/ic_empty_cart"
                     android:alpha="0.6"
                     android:layout_marginBottom="24dp"
-                    app:tint="@color/cart_secondary" />
+                    android:tint="@android:color/darker_gray" />
 
                 <TextView
                     android:id="@+id/tvCartEmpty"
@@ -98,23 +101,23 @@
                     android:text="Your cart is empty"
                     android:textSize="22sp"
                     android:textStyle="bold"
-                    android:textColor="@color/cart_primary"
+                    android:textColor="@android:color/black"
                     android:layout_marginBottom="8dp"
                     android:fontFamily="sans-serif-medium" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Add some items to get started"
+                    android:text="Add some products to get started"
                     android:textSize="16sp"
-                    android:textColor="@color/cart_secondary"
+                    android:textColor="@android:color/darker_gray"
                     android:layout_marginBottom="32dp" />
 
                 <Button
                     android:layout_width="wrap_content"
                     android:layout_height="48dp"
-                    android:text="Start Shopping"
-                    android:background="@drawable/cart_button_primary"
+                    android:text="Continue Shopping"
+                    android:background="@android:color/black"
                     android:textColor="@android:color/white"
                     android:textSize="16sp"
                     android:textStyle="bold"
@@ -134,7 +137,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:background="@color/white"
+        android:background="@android:color/white"
         android:padding="20dp"
         android:elevation="8dp">
 
@@ -152,7 +155,7 @@
                 android:layout_weight="1"
                 android:text="Subtotal"
                 android:textSize="16sp"
-                android:textColor="@color/text_secondary" />
+                android:textColor="@android:color/darker_gray" />
 
             <TextView
                 android:id="@+id/tvSubtotal"
@@ -160,7 +163,7 @@
                 android:layout_height="wrap_content"
                 android:text="$619.96"
                 android:textSize="16sp"
-                android:textColor="@color/text_primary" />
+                android:textColor="@android:color/black" />
 
         </LinearLayout>
 
@@ -178,7 +181,7 @@
                 android:layout_weight="1"
                 android:text="Shipping"
                 android:textSize="16sp"
-                android:textColor="@color/text_secondary" />
+                android:textColor="@android:color/darker_gray" />
 
             <TextView
                 android:id="@+id/tvShipping"
@@ -186,7 +189,7 @@
                 android:layout_height="wrap_content"
                 android:text="$5.99"
                 android:textSize="16sp"
-                android:textColor="@color/text_primary" />
+                android:textColor="@android:color/black" />
 
         </LinearLayout>
 
@@ -204,7 +207,7 @@
                 android:layout_weight="1"
                 android:text="Tax"
                 android:textSize="16sp"
-                android:textColor="@color/text_secondary" />
+                android:textColor="@android:color/darker_gray" />
 
             <TextView
                 android:id="@+id/tvTax"
@@ -212,7 +215,7 @@
                 android:layout_height="wrap_content"
                 android:text="$49.60"
                 android:textSize="16sp"
-                android:textColor="@color/text_primary" />
+                android:textColor="@android:color/black" />
 
         </LinearLayout>
 
@@ -220,7 +223,7 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="@color/cart_divider"
+            android:background="@android:color/darker_gray"
             android:layout_marginBottom="12dp" />
 
         <!-- Total -->
@@ -238,7 +241,7 @@
                 android:text="Total"
                 android:textSize="18sp"
                 android:textStyle="bold"
-                android:textColor="@color/text_primary" />
+                android:textColor="@android:color/black" />
 
             <TextView
                 android:id="@+id/tvTotal"
@@ -247,7 +250,7 @@
                 android:text="$675.55"
                 android:textSize="18sp"
                 android:textStyle="bold"
-                android:textColor="@color/text_primary" />
+                android:textColor="@android:color/black" />
 
         </LinearLayout>
 
@@ -260,9 +263,22 @@
             android:textSize="16sp"
             android:textStyle="bold"
             android:textColor="@android:color/white"
-            android:background="@drawable/cart_checkout_button"
-            android:elevation="4dp" />
+            android:background="@drawable/rounded_checkout_button"
+            android:elevation="4dp"
+            android:stateListAnimator="@null" />
 
     </LinearLayout>
+
+    <!-- Bottom Navigation -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNav"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:background="@android:color/white"
+        app:menu="@menu/menu_bottom_nav"
+        app:itemIconTint="@color/nav_icon_selector"
+        app:itemTextColor="@color/nav_icon_selector"
+        app:labelVisibilityMode="labeled"
+        app:elevation="8dp" />
 
 </LinearLayout>

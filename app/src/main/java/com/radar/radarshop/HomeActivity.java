@@ -141,7 +141,9 @@ public class HomeActivity extends AppCompatActivity {
                     startActivity(new Intent(this, OrdersActivity.class));
                     return true;
                 } else if (id == R.id.nav_cart) {
-                    showCartFragment();
+                    Intent cartIntent = new Intent(this, CartActivity.class);
+                    cartIntent.putExtra("from_activity", "HomeActivity");
+                    startActivity(cartIntent);
                     return true;
                 } else if (id == R.id.nav_wishlist) {
                     startActivity(new Intent(this, WishlistActivity.class));
@@ -493,6 +495,13 @@ public class HomeActivity extends AppCompatActivity {
     public void onCheckout(View view) {
         if (cartFragment != null) {
             cartFragment.onCheckout(view);
+        }
+    }
+    
+    // Method to handle start shopping button click from fragment layout
+    public void startShopping(View view) {
+        if (cartFragment != null) {
+            cartFragment.startShopping(view);
         }
     }
 }

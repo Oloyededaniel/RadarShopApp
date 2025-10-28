@@ -156,6 +156,7 @@ public class ShopFragment extends Fragment implements ProductCardAdapter.OnProdu
     private void setupCartFab() {
         fabCart.setOnClickListener(v -> {
             Intent intent = new Intent(getContext(), CartActivity.class);
+            intent.putExtra("from_activity", "ShopFragment");
             startActivity(intent);
         });
     }

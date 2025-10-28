@@ -61,6 +61,36 @@
 
         </LinearLayout>
 
+        <!-- Information Save Notice -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/info_background"
+            android:padding="12dp"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone"
+            android:id="@+id/layoutSaveNotice">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_info"
+                android:tint="@color/info_blue"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Your information will be saved for future orders. You can edit it anytime."
+                android:textSize="14sp"
+                android:textColor="@color/info_text"
+                android:fontFamily="sans-serif" />
+
+        </LinearLayout>
+
         <!-- Order Summary Card -->
         <androidx.cardview.widget.CardView
             android:id="@+id/orderSummaryCard"
@@ -308,7 +338,7 @@
                         android:id="@+id/etAddress"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Street Address"
+                        android:hint="Street Address (e.g., 123 Main St)"
                         android:inputType="textPostalAddress"
                         android:textSize="16sp" />
 
@@ -332,7 +362,7 @@
                             android:id="@+id/etCity"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:hint="City"
+                            android:hint="City (e.g., Toronto)"
                             android:inputType="text"
                             android:textSize="16sp" />
 
@@ -351,8 +381,9 @@
                             android:id="@+id/etState"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:hint="State"
-                            android:inputType="text"
+                            android:hint="Province (e.g., ON, BC, AB)"
+                            android:inputType="textCapCharacters"
+                            android:maxLength="2"
                             android:textSize="16sp" />
 
                     </com.google.android.material.textfield.TextInputLayout>
@@ -378,8 +409,9 @@
                             android:id="@+id/etZipCode"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:hint="ZIP Code"
-                            android:inputType="number"
+                            android:hint="Postal Code (e.g., A1B 2C3)"
+                            android:inputType="textCapCharacters"
+                            android:maxLength="7"
                             android:textSize="16sp" />
 
                     </com.google.android.material.textfield.TextInputLayout>
@@ -397,7 +429,7 @@
                             android:id="@+id/etPhone"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:hint="Phone Number"
+                            android:hint="Phone (e.g., (416) 555-0123)"
                             android:inputType="phone"
                             android:textSize="16sp" />
 

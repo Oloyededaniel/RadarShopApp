@@ -267,6 +267,7 @@
                             android:background="@drawable/rounded_container"
                             android:padding="12dp"
                             android:enabled="false"
+                            android:hint="e.g., (416) 555-0123"
                             android:inputType="phone"
                             android:textSize="16sp" />
                     </LinearLayout>
@@ -338,6 +339,7 @@
                             android:background="@drawable/rounded_container"
                             android:padding="12dp"
                             android:enabled="false"
+                            android:hint="e.g., 123 Main St"
                             android:textSize="16sp" />
                     </LinearLayout>
 
@@ -371,6 +373,7 @@
                                 android:background="@drawable/rounded_container"
                                 android:padding="12dp"
                                 android:enabled="false"
+                                android:hint="e.g., Toronto"
                                 android:textSize="16sp" />
                         </LinearLayout>
 
@@ -384,7 +387,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="State"
+                                android:text="Province"
                                 android:textStyle="bold"
                                 android:textColor="@color/txtPrimary"
                                 android:textSize="14sp"
@@ -397,6 +400,9 @@
                                 android:background="@drawable/rounded_container"
                                 android:padding="12dp"
                                 android:enabled="false"
+                                android:hint="e.g., ON, BC, AB"
+                                android:inputType="textCapCharacters"
+                                android:maxLength="2"
                                 android:textSize="16sp" />
                         </LinearLayout>
                     </LinearLayout>
@@ -417,7 +423,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="ZIP Code"
+                                android:text="Postal Code"
                                 android:textStyle="bold"
                                 android:textColor="@color/txtPrimary"
                                 android:textSize="14sp"
@@ -430,7 +436,9 @@
                                 android:background="@drawable/rounded_container"
                                 android:padding="12dp"
                                 android:enabled="false"
-                                android:inputType="number"
+                                android:hint="e.g., A1B 2C3"
+                                android:inputType="textCapCharacters"
+                                android:maxLength="7"
                                 android:textSize="16sp" />
                         </LinearLayout>
 
@@ -450,8 +458,8 @@
                                 android:textSize="14sp"
                                 android:layout_marginBottom="8dp" />
 
-                            <EditText
-                                android:id="@+id/etCountry"
+                            <Spinner
+                                android:id="@+id/spinnerCountry"
                                 android:layout_width="match_parent"
                                 android:layout_height="50dp"
                                 android:background="@drawable/rounded_container"

@@ -4,16 +4,21 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.nfc.Tag;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,10 +29,10 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 public class ProfileActivity extends AppCompatActivity {
-
     private TextView tvAvatar, tvName, tvEmailHeader;
     private EditText etFirst, etLast, etEmail, etPhone;
-    private EditText etStreet, etCity, etState, etZip, etCountry;
+    private EditText etStreet, etCity, etState, etZip;
+    private Spinner spinnerCountry;
     private TextView tvEdit, tvEditAddress;
     private ImageView ivSave;
     private LinearLayout btnChangePassword, btnLogout, btnDeleteAccount;
@@ -83,7 +88,7 @@ public class ProfileActivity extends AppCompatActivity {
         etCity         = findViewById(R.id.etCity);
         etState        = findViewById(R.id.etState);
         etZip          = findViewById(R.id.etZip);
-        etCountry      = findViewById(R.id.etCountry);
+        spinnerCountry = findViewById(R.id.spinnerCountry);
 
         btnChangePassword = findViewById(R.id.btnChangePassword);
         btnLogout         = findViewById(R.id.btnLogout);
@@ -96,6 +101,12 @@ public class ProfileActivity extends AppCompatActivity {
         setPersonalEnabled(false);
         setAddressEnabled(false);
         renderProfile(email);
+        
+        // Initialize country spinner
+        initializeCountrySpinner();
+        
+        // Add postal code formatting
+        addPostalCodeFormatting();
 
         // --- Listeners (only attach if views exist) ---
         if (btnBack != null) {
@@ -109,40 +120,70 @@ public class ProfileActivity extends AppCompatActivity {
 
         if (tvEdit != null) {
             tvEdit.setOnClickListener(v -> {
-                personalEditing = !personalEditing;
-                setPersonalEnabled(personalEditing);
-                if (ivSave != null) ivSave.setVisibility(personalEditing ? View.VISIBLE : View.GONE);
-                tvEdit.setText(personalEditing ? "Cancel" : "Edit");
-            });
-        }
-
-        if (ivSave != null) {
-            ivSave.setOnClickListener(v -> {
-                boolean ok = db.updateProfile(
-                        email,
-                        safeText(etFirst), safeText(etLast), safeText(etPhone),
-                        safeText(etStreet), safeText(etCity), safeText(etState),
-                        safeText(etZip), safeText(etCountry)
-                );
-                Toast.makeText(this, ok ? "Profile saved" : "Save failed", Toast.LENGTH_SHORT).show();
-                if (ok) {
-                    personalEditing = false;
-                    setPersonalEnabled(false);
-                    ivSave.setVisibility(View.GONE);
-                    if (tvEdit != null) tvEdit.setText("Edit");
-                    // refresh header bits
-                    String full = (safeText(etFirst) + " " + safeText(etLast)).trim();
-                    if (tvName != null) tvName.setText(TextUtils.isEmpty(full) ? "User" : full);
-                    if (tvAvatar != null) tvAvatar.setText(makeInitials(full, email));
+                if (!personalEditing) {
+                    // Switch to edit mode
+                    personalEditing = true;
+                    setPersonalEnabled(true);
+                    tvEdit.setText("Save");
+                    Toast.makeText(this, "Editing personal information…", Toast.LENGTH_SHORT).show();
+                } else {
+                    // Save the personal data
+                    String userEmail = session.getEmail();
+                    if (!TextUtils.isEmpty(userEmail)) {
+                        boolean ok = db.updateProfile(
+                                userEmail,
+                                safeText(etFirst), safeText(etLast), safeText(etPhone),
+                                safeText(etStreet), safeText(etCity), safeText(etState),
+                                safeText(etZip), getSelectedCountry()
+                        );
+                        Toast.makeText(this, ok ? "Personal information saved" : "Save failed", Toast.LENGTH_SHORT).show();
+                        
+                        if (ok) {
+                            personalEditing = false;
+                            setPersonalEnabled(false);
+                            tvEdit.setText("Edit");
+                            // refresh header bits
+                            String full = (safeText(etFirst) + " " + safeText(etLast)).trim();
+                            if (tvName != null) tvName.setText(TextUtils.isEmpty(full) ? "User" : full);
+                            if (tvAvatar != null) tvAvatar.setText(makeInitials(full, userEmail));
+                        }
+                    }
                 }
             });
         }
 
+        if (ivSave != null) {
+            // Save icon is no longer needed - functionality moved to edit button toggle
+            ivSave.setVisibility(View.GONE);
+        }
+
         if (tvEditAddress != null) {
             tvEditAddress.setOnClickListener(v -> {
-                addressEditing = !addressEditing;
-                setAddressEnabled(addressEditing);
-                Toast.makeText(this, addressEditing ? "Editing address…" : "Address locked", Toast.LENGTH_SHORT).show();
+                if (!addressEditing) {
+                    // Switch to edit mode
+                    addressEditing = true;
+                    setAddressEnabled(true);
+                    tvEditAddress.setText("Save");
+                    Toast.makeText(this, "Editing address…", Toast.LENGTH_SHORT).show();
+                } else {
+                    // Save the address data
+                    String userEmail = session.getEmail();
+                    if (!TextUtils.isEmpty(userEmail)) {
+                        boolean ok = db.updateProfile(
+                                userEmail,
+                                safeText(etFirst), safeText(etLast), safeText(etPhone),
+                                safeText(etStreet), safeText(etCity), safeText(etState),
+                                safeText(etZip), getSelectedCountry()
+                        );
+                        Toast.makeText(this, ok ? "Address saved" : "Save failed", Toast.LENGTH_SHORT).show();
+                        
+                        if (ok) {
+                            addressEditing = false;
+                            setAddressEnabled(false);
+                            tvEditAddress.setText("Edit");
+                        }
+                    }
+                }
             });
         }
 
@@ -194,7 +235,7 @@ public class ProfileActivity extends AppCompatActivity {
             setText(etCity,    up.city);
             setText(etState,   up.state);
             setText(etZip,     up.zip);
-            setText(etCountry, up.country);
+            setCountrySpinner(up.country);
         } else {
             // Minimal fallback
             setText(etEmail, email);
@@ -214,7 +255,7 @@ public class ProfileActivity extends AppCompatActivity {
         setEnabled(etCity, enabled);
         setEnabled(etState, enabled);
         setEnabled(etZip, enabled);
-        setEnabled(etCountry, enabled);
+        if (spinnerCountry != null) spinnerCountry.setEnabled(enabled);
     }
 
 
@@ -384,5 +425,68 @@ public class ProfileActivity extends AppCompatActivity {
         } else {
             super.onBackPressed();
         }
+    }
+    
+    private void initializeCountrySpinner() {
+        if (spinnerCountry == null) return;
+        
+        String[] countries = {
+            "Canada", "United States", "United Kingdom", "Australia", 
+            "Germany", "France", "Japan", "Brazil", "India", "Mexico"
+        };
+        
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, 
+            android.R.layout.simple_spinner_item, countries);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerCountry.setAdapter(adapter);
+        
+        // Set default to Canada
+        spinnerCountry.setSelection(0);
+    }
+    
+    private void setCountrySpinner(String country) {
+        if (spinnerCountry == null || country == null) return;
+        
+        ArrayAdapter<String> adapter = (ArrayAdapter<String>) spinnerCountry.getAdapter();
+        if (adapter != null) {
+            int position = adapter.getPosition(country);
+            if (position >= 0) {
+                spinnerCountry.setSelection(position);
+            }
+        }
+    }
+    
+    private String getSelectedCountry() {
+        if (spinnerCountry == null) return "";
+        return (String) spinnerCountry.getSelectedItem();
+    }
+    
+    private void addPostalCodeFormatting() {
+        if (etZip == null) return;
+        
+        etZip.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String formatted = formatPostalCode(s.toString());
+                if (!formatted.equals(s.toString())) {
+                    etZip.setText(formatted);
+                    etZip.setSelection(formatted.length());
+                }
+            }
+            
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+    }
+    
+    private String formatPostalCode(String input) {
+        String cleaned = input.replaceAll("\\s", "").toUpperCase();
+        if (cleaned.length() >= 3) {
+            return cleaned.substring(0, 3) + " " + cleaned.substring(3, Math.min(6, cleaned.length()));
+        }
+        return cleaned;
     }
 }

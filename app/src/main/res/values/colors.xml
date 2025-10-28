@@ -92,4 +92,8 @@
     
     <!-- Order Success Screen Colors -->
     <color name="order_total_background">#F5F5F5</color>
+    
+    <!-- Info Notice Colors -->
+    <color name="info_blue">#2196F3</color>
+    <color name="info_text">#1976D2</color>
 </resources>

@@ -213,11 +213,13 @@ public class CartFragment extends Fragment implements CartAdapter.OnCartItemInte
 
     // Handle button clicks from layout
     public void startShopping(View view) {
-        // Navigate to shop
-        if (getActivity() instanceof HomeActivity) {
-            ((HomeActivity) getActivity()).showHomeFragment();
-        } else if (getActivity() instanceof ShopActivity) {
-            ((ShopActivity) getActivity()).showShopFragment();
+        // Navigate to ShopActivity
+        Intent intent = new Intent(getContext(), ShopActivity.class);
+        startActivity(intent);
+        
+        // If we're in a fragment within an activity, finish the parent activity
+        if (getActivity() != null) {
+            getActivity().finish();
         }
     }
 
