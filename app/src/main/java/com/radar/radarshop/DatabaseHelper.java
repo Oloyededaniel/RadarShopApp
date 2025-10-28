@@ -631,6 +631,51 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return getProducts(nameFilter, catFilter, minPrice, maxPrice);
     }
 
+    public List<Product> searchProducts(String searchQuery) {
+        ArrayList<Product> list = new ArrayList<>();
+        
+        if (searchQuery == null || searchQuery.trim().isEmpty()) {
+            return list;
+        }
+        
+        String query = "SELECT p." + COL_PRODUCT_ID + ", p." + COL_PRODUCT_NAME + ", p." + COL_PRODUCT_DESC + 
+                      ", p." + COL_PRODUCT_DETAILED_DESC + ", p." + COL_PRODUCT_PRICE + ", p." + COL_PRODUCT_CATEGORY_ID +
+                      ", c." + COL_CATEGORY_NAME + ", p." + COL_PRODUCT_STOCK + ", p." + COL_PRODUCT_AVERAGE_RATING +
+                      ", p." + COL_PRODUCT_TOTAL_REVIEWS + ", p." + COL_PRODUCT_SKU + ", p." + COL_PRODUCT_BRAND +
+                      ", p." + COL_PRODUCT_WEIGHT + ", p." + COL_PRODUCT_DIMENSIONS + ", p." + COL_PRODUCT_CREATED_AT +
+                      ", p." + COL_PRODUCT_UPDATED_AT +
+                      " FROM " + TABLE_PRODUCTS + " p LEFT JOIN " + TABLE_CATEGORIES + " c ON p." + COL_PRODUCT_CATEGORY_ID + " = c." + COL_CATEGORY_ID +
+                      " WHERE p." + COL_PRODUCT_NAME + " LIKE ? OR p." + COL_PRODUCT_DESC + " LIKE ? OR p." + COL_PRODUCT_BRAND + " LIKE ? OR c." + COL_CATEGORY_NAME + " LIKE ?" +
+                      " ORDER BY p." + COL_PRODUCT_NAME + " ASC";
+        
+        String searchPattern = "%" + searchQuery.toLowerCase() + "%";
+        
+        try (Cursor c = getReadableDatabase().rawQuery(query, new String[]{searchPattern, searchPattern, searchPattern, searchPattern})) {
+            while (c.moveToNext()) {
+                int id = c.getInt(0);
+                String name = c.getString(1);
+                String desc = c.getString(2);
+                String detailedDesc = c.getString(3);
+                double price = c.getDouble(4);
+                int categoryId = c.getInt(5);
+                String categoryName = c.getString(6);
+                int stock = c.getInt(7);
+                double rating = c.getDouble(8);
+                int reviews = c.getInt(9);
+                String sku = c.getString(10);
+                String brand = c.getString(11);
+                double weight = c.getDouble(12);
+                String dimensions = c.getString(13);
+                String createdAt = c.getString(14);
+                String updatedAt = c.getString(15);
+                
+                list.add(new Product(id, name, desc, detailedDesc, price, categoryId, categoryName,
+                                   stock, rating, reviews, sku, brand, weight, dimensions, createdAt, updatedAt));
+            }
+        }
+        return list;
+    }
+
 
     /* WISHLIST */
 
@@ -648,6 +693,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COL_WISH_EMAIL + "=? AND " + COL_WISH_PRODUCT_ID + "=?",
                 new String[]{userEmail, String.valueOf(productId)});
         return rows > 0;
+    }
+
+    public boolean isInWishlist(String userEmail, int productId) {
+        String sql = "SELECT COUNT(*) FROM " + TABLE_WISHLIST +
+                " WHERE " + COL_WISH_EMAIL + "=? AND " + COL_WISH_PRODUCT_ID + "=?";
+        
+        try (Cursor c = getReadableDatabase().rawQuery(sql, new String[]{userEmail, String.valueOf(productId)})) {
+            if (c.moveToFirst()) {
+                return c.getInt(0) > 0;
+            }
+        }
+        return false;
     }
 
     public List<Product> getWishlist(String userEmail) {
@@ -709,6 +766,52 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return rows > 0;
     }
 
+    public boolean updateCartQuantity(String userEmail, int productId, int newQuantity) {
+        ContentValues cv = new ContentValues();
+        cv.put(COL_CART_QUANTITY, newQuantity);
+        
+        int rows = getWritableDatabase().update(TABLE_CART, cv,
+                COL_CART_EMAIL + "=? AND " + COL_CART_PRODUCT_ID + "=?",
+                new String[]{userEmail, String.valueOf(productId)});
+        return rows > 0;
+    }
+
+    public int getCartQuantity(String userEmail, int productId) {
+        String sql = "SELECT " + COL_CART_QUANTITY + " FROM " + TABLE_CART +
+                " WHERE " + COL_CART_EMAIL + "=? AND " + COL_CART_PRODUCT_ID + "=?";
+        
+        try (Cursor c = getReadableDatabase().rawQuery(sql, new String[]{userEmail, String.valueOf(productId)})) {
+            if (c.moveToFirst()) {
+                return c.getInt(0);
+            }
+        }
+        return 0;
+    }
+
+    public int getCartItemCount(String userEmail) {
+        String sql = "SELECT SUM(" + COL_CART_QUANTITY + ") FROM " + TABLE_CART +
+                " WHERE " + COL_CART_EMAIL + "=?";
+        
+        try (Cursor c = getReadableDatabase().rawQuery(sql, new String[]{userEmail})) {
+            if (c.moveToFirst()) {
+                return c.getInt(0);
+            }
+        }
+        return 0;
+    }
+
+    public boolean isInCart(String userEmail, int productId) {
+        String sql = "SELECT COUNT(*) FROM " + TABLE_CART +
+                " WHERE " + COL_CART_EMAIL + "=? AND " + COL_CART_PRODUCT_ID + "=?";
+        
+        try (Cursor c = getReadableDatabase().rawQuery(sql, new String[]{userEmail, String.valueOf(productId)})) {
+            if (c.moveToFirst()) {
+                return c.getInt(0) > 0;
+            }
+        }
+        return false;
+    }
+
     // TODO: add quantity to returned list
     public List<Product> getCart(String userEmail) {
         ArrayList<Product> list = new ArrayList<>();
@@ -748,6 +851,40 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             }
         }
         return list;
+    }
+
+    public List<CartItem> getCartItems(String userEmail) {
+        ArrayList<CartItem> list = new ArrayList<>();
+        String sql =
+                "SELECT p." + COL_PRODUCT_ID + ", p." + COL_PRODUCT_NAME + ", p." + COL_PRODUCT_DESC + ", " +
+                        "p." + COL_PRODUCT_PRICE + ", p." + COL_PRODUCT_BRAND + ", " +
+                        "c." + COL_CATEGORY_NAME + ", cart." + COL_CART_QUANTITY +
+                        " FROM " + TABLE_PRODUCTS + " p " +
+                        " JOIN " + TABLE_CART + " cart ON p." + COL_PRODUCT_ID + " = cart." + COL_CART_PRODUCT_ID +
+                        " JOIN " + TABLE_CATEGORIES + " c ON p." + COL_PRODUCT_CATEGORY_ID + " = c." + COL_CATEGORY_ID +
+                        " WHERE cart." + COL_CART_EMAIL + " = ?";
+
+        try (Cursor c = getReadableDatabase().rawQuery(sql, new String[]{userEmail})) {
+            while (c.moveToNext()) {
+                int productId = c.getInt(0);
+                String productName = c.getString(1);
+                String productDesc = c.getString(2);
+                double price = c.getDouble(3);
+                String brand = c.getString(4);
+                String category = c.getString(5);
+                int quantity = c.getInt(6);
+                
+                // For now, use placeholder image
+                String productImage = "";
+                
+                list.add(new CartItem(productId, productName, productImage, price, quantity, brand, category));
+            }
+        }
+        return list;
+    }
+
+    public boolean updateCartItemQuantity(String userEmail, int productId, int newQuantity) {
+        return updateCartQuantity(userEmail, productId, newQuantity);
     }
 
     /* REVIEWS */

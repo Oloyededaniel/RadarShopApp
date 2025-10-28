@@ -2,4 +2,45 @@
     <string name="app_name">RadarShop</string>
     <string name="cd_profile">profile</string>
     <string name="appbar_scrolling_view_behavior">com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior</string>
+    
+    <!-- Checkout Activity Strings -->
+    <string name="checkout_title">Checkout</string>
+    <string name="order_summary">Order Summary</string>
+    <string name="shipping_address">Shipping Address</string>
+    <string name="payment_method">Payment Method</string>
+    <string name="full_name">Full Name</string>
+    <string name="street_address">Street Address</string>
+    <string name="city">City</string>
+    <string name="state">State</string>
+    <string name="zip_code">ZIP Code</string>
+    <string name="phone_number">Phone Number</string>
+    <string name="shipping_method">Shipping Method</string>
+    <string name="standard_shipping">Standard Shipping (5-7 days) - $5.99</string>
+    <string name="express_shipping">Express Shipping (2-3 days) - $12.99</string>
+    <string name="overnight_shipping">Overnight Shipping (1 day) - $24.99</string>
+    <string name="credit_card">Credit Card</string>
+    <string name="debit_card">Debit Card</string>
+    <string name="paypal">PayPal</string>
+    <string name="card_number">Card Number</string>
+    <string name="expiry_date">MM/YY</string>
+    <string name="cvv">CVV</string>
+    <string name="cardholder_name">Cardholder Name</string>
+    <string name="subtotal">Subtotal</string>
+    <string name="shipping">Shipping</string>
+    <string name="tax">Tax</string>
+    <string name="total">Total</string>
+    <string name="place_order">Place Order</string>
+    <string name="back_to_cart">Back to Cart</string>
+    <string name="order_placed_successfully">Order placed successfully! 🎉</string>
+    <string name="please_select_payment_method">Please select a payment method</string>
+    <string name="full_name_required">Full name is required</string>
+    <string name="address_required">Address is required</string>
+    <string name="city_required">City is required</string>
+    <string name="state_required">State is required</string>
+    <string name="zip_code_required">ZIP code is required</string>
+    <string name="phone_required">Phone number is required</string>
+    <string name="card_number_required">Card number is required</string>
+    <string name="expiry_date_required">Expiry date is required</string>
+    <string name="cvv_required">CVV is required</string>
+    <string name="cardholder_name_required">Cardholder name is required</string>
 </resources>

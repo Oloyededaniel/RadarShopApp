@@ -86,10 +86,13 @@
                     android:paddingRight="14dp">
 
                     <ImageView
+                        android:id="@+id/searchIcon"
                         android:layout_width="20dp"
                         android:layout_height="20dp"
                         android:src="@android:drawable/ic_menu_search"
                         android:contentDescription="@string/app_name"
+                        android:clickable="true"
+                        android:focusable="true"
                         app:tint="@color/txtMuted" />
 
                     <EditText

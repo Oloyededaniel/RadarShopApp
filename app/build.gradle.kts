@@ -48,6 +48,8 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation(libs.core)
     implementation(libs.recyclerview)
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation("androidx.coordinatorlayout:coordinatorlayout:1.2.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
