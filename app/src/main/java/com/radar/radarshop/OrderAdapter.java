@@ -133,12 +133,14 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
                     ivStatusIcon.setImageResource(R.drawable.ic_check_circle);
                     tvStatusBadge.setText("Delivered");
                     tvStatusBadge.setBackgroundResource(R.drawable.status_delivered_background);
+                    btnAction.setVisibility(View.VISIBLE);
                     btnAction.setText("Buy Again");
                     break;
                 case "shipped":
                     ivStatusIcon.setImageResource(R.drawable.ic_local_shipping);
                     tvStatusBadge.setText("Shipped");
                     tvStatusBadge.setBackgroundResource(R.drawable.status_shipped_background);
+                    btnAction.setVisibility(View.VISIBLE);
                     btnAction.setText("Track Order");
                     break;
                 case "processing":
@@ -146,6 +148,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
                     ivStatusIcon.setImageResource(R.drawable.ic_inventory);
                     tvStatusBadge.setText("Processing");
                     tvStatusBadge.setBackgroundResource(R.drawable.status_processing_background);
+                    btnAction.setVisibility(View.GONE);
                     btnAction.setText("View Details");
                     break;
             }
