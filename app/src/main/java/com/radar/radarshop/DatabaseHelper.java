@@ -1254,7 +1254,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return getWritableDatabase().insert(TABLE_CATEGORIES, null, cv);
     }
 
-    /* ENHANCED PRODUCTS */
 
     public long insertEnhancedProduct(String name, String description, String detailedDescription,
                                      double price, int categoryId, int stockQuantity, String sku,

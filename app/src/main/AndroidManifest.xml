@@ -10,7 +10,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.RadarShop">
 
-        <!-- Splash Screen -->
         <activity
             android:name=".SplashActivity"
             android:exported="true"
