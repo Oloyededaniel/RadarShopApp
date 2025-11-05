@@ -104,7 +104,7 @@ public class OrdersActivity extends AppCompatActivity implements OrderAdapter.On
         
         // If no orders exist, create sample orders for demo
         if (userOrders.isEmpty()) {
-            databaseHelper.createSampleOrders(userEmail);
+            //databaseHelper.createSampleOrders(userEmail);
             userOrders = databaseHelper.getUserOrders(userEmail);
         }
         

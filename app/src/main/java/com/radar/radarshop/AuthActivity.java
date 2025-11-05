@@ -18,15 +18,22 @@ public class AuthActivity extends AppCompatActivity {
     private TabLayout tabLayout;
     private ViewPager2 viewPager;
     private ScrollView mainScrollView;
+    private String prefillEmail;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_auth); // has tabLayout + viewPager
 
-        // 1) If already logged in, skip auth
+        // Get prefill email from intent if available
+        Intent intent = getIntent();
+        if (intent != null) {
+            prefillEmail = intent.getStringExtra("prefill_email");
+        }
+
+        // 1) If already logged in, skip auth (unless switching accounts)
         SessionManager session = new SessionManager(this);
-        if (session.isLoggedIn()) {
+        if (session.isLoggedIn() && prefillEmail == null) {
             // User is already logged in, go to home
             startActivity(new Intent(this, HomeActivity.class));
             finish();
@@ -41,8 +48,13 @@ public class AuthActivity extends AppCompatActivity {
         viewPager = findViewById(R.id.viewPager);
         mainScrollView = findViewById(R.id.mainScrollView);
 
-        AuthPagerAdapter adapter = new AuthPagerAdapter(this);
+        AuthPagerAdapter adapter = new AuthPagerAdapter(this, prefillEmail);
         viewPager.setAdapter(adapter);
+        
+        // If prefill email is provided, switch to Sign In tab
+        if (prefillEmail != null) {
+            viewPager.setCurrentItem(0, false);
+        }
 
         // 3) Attach Tab titles
         new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {

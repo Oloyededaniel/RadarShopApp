@@ -1,6 +1,5 @@
 package com.radar.radarshop;
 
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.nfc.Tag;
 import android.os.Bundle;
@@ -22,11 +21,18 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ProfileActivity extends AppCompatActivity {
     private TextView tvAvatar, tvName, tvEmailHeader;
@@ -35,7 +41,7 @@ public class ProfileActivity extends AppCompatActivity {
     private Spinner spinnerCountry;
     private TextView tvEdit, tvEditAddress;
     private ImageView ivSave;
-    private LinearLayout btnChangePassword, btnLogout, btnDeleteAccount;
+    private LinearLayout btnChangePassword, btnSwitchAccount, btnLogout, btnDeleteAccount;
     private FrameLayout fragmentContainer;
 
     private DatabaseHelper db;
@@ -45,6 +51,7 @@ public class ProfileActivity extends AppCompatActivity {
     private boolean personalEditing = false;
     private boolean addressEditing  = false;
     private boolean isPasswordFragmentVisible = false;
+    private OnBackPressedCallback onBackPressedCallback;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -92,6 +99,7 @@ public class ProfileActivity extends AppCompatActivity {
         spinnerCountry = findViewById(R.id.spinnerCountry);
 
         btnChangePassword = findViewById(R.id.btnChangePassword);
+        btnSwitchAccount  = findViewById(R.id.btnSwitchAccount);
         btnLogout         = findViewById(R.id.btnLogout);
         btnDeleteAccount  = findViewById(R.id.btnDeleteAccount);
         fragmentContainer = findViewById(R.id.fragmentContainer);
@@ -111,6 +119,9 @@ public class ProfileActivity extends AppCompatActivity {
         
         // Setup address autocomplete
         setupAddressAutocomplete();
+        
+        // Setup OnBackPressedDispatcher callback
+        setupBackPressHandler();
 
         // --- Listeners (only attach if views exist) ---
         if (btnBack != null) {
@@ -196,6 +207,12 @@ public class ProfileActivity extends AppCompatActivity {
                 Log.d("ProfileActivity", "Change Password button clicked");
                 Toast.makeText(this, "Opening password change...", Toast.LENGTH_SHORT).show();
                 showPasswordChangeFragment();
+            });
+        }
+
+        if (btnSwitchAccount != null) {
+            btnSwitchAccount.setOnClickListener(v -> {
+                showAccountSwitcherDialog();
             });
         }
 
@@ -416,6 +433,11 @@ public class ProfileActivity extends AppCompatActivity {
         Log.d("ProfileActivity", "Setting fragment container visibility to VISIBLE");
         fragmentContainer.setVisibility(View.VISIBLE);
         isPasswordFragmentVisible = true;
+        
+        // Enable the back press callback to handle fragment dismissal
+        if (onBackPressedCallback != null) {
+            onBackPressedCallback.setEnabled(true);
+        }
     }
 
     private void hidePasswordChangeFragment() {
@@ -432,15 +454,23 @@ public class ProfileActivity extends AppCompatActivity {
         // Hide fragment container and show main content
         fragmentContainer.setVisibility(View.GONE);
         isPasswordFragmentVisible = false;
+        
+        // Disable the back press callback to allow normal back behavior
+        if (onBackPressedCallback != null) {
+            onBackPressedCallback.setEnabled(false);
+        }
     }
 
-    @Override
-    public void onBackPressed() {
-        if (isPasswordFragmentVisible) {
-            hidePasswordChangeFragment();
-        } else {
-            super.onBackPressed();
-        }
+    private void setupBackPressHandler() {
+        onBackPressedCallback = new OnBackPressedCallback(false) {
+            @Override
+            public void handleOnBackPressed() {
+                if (isPasswordFragmentVisible) {
+                    hidePasswordChangeFragment();
+                }
+            }
+        };
+        getOnBackPressedDispatcher().addCallback(this, onBackPressedCallback);
     }
     
     private void initializeCountrySpinner() {
@@ -526,5 +556,80 @@ public class ProfileActivity extends AppCompatActivity {
             e.printStackTrace();
             // Silently fail - autocomplete is optional
         }
+    }
+
+    private void showAccountSwitcherDialog() {
+        List<SessionManager.SavedAccount> savedAccounts = session.getSavedAccounts();
+        String currentEmail = session.getEmail();
+        
+        // Filter out current account
+        List<SessionManager.SavedAccount> otherAccounts = new ArrayList<>();
+        for (SessionManager.SavedAccount account : savedAccounts) {
+            if (!account.email.equalsIgnoreCase(currentEmail)) {
+                otherAccounts.add(account);
+            }
+        }
+        
+        // Create custom dialog view
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_account_switcher, null);
+        
+        RecyclerView recyclerViewAccounts = dialogView.findViewById(R.id.recyclerViewAccounts);
+        LinearLayout emptyStateLayout = dialogView.findViewById(R.id.emptyStateLayout);
+        LinearLayout btnAddAccount = dialogView.findViewById(R.id.btnAddAccount);
+        ImageButton btnClose = dialogView.findViewById(R.id.btnClose);
+        
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
+        
+        // Setup RecyclerView or show empty state
+        if (otherAccounts.isEmpty()) {
+            // Hide RecyclerView and show empty state
+            recyclerViewAccounts.setVisibility(View.GONE);
+            emptyStateLayout.setVisibility(View.VISIBLE);
+        } else {
+            // Show RecyclerView and hide empty state
+            recyclerViewAccounts.setVisibility(View.VISIBLE);
+            emptyStateLayout.setVisibility(View.GONE);
+            AccountSwitcherAdapter adapter = new AccountSwitcherAdapter(otherAccounts, account -> {
+                dialog.dismiss();
+                switchToAccount(account.email);
+            });
+            recyclerViewAccounts.setLayoutManager(new LinearLayoutManager(this));
+            recyclerViewAccounts.setAdapter(adapter);
+        }
+        
+        // Setup Add Account button
+        btnAddAccount.setOnClickListener(v -> {
+            dialog.dismiss();
+            session.logout();
+            Intent authIntent = new Intent(this, AuthActivity.class);
+            authIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(authIntent);
+            finish();
+        });
+        
+        // Setup Close button
+        btnClose.setOnClickListener(v -> dialog.dismiss());
+        
+        // Show dialog
+        dialog.show();
+        
+        // Make dialog rounded corners
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+    }
+    
+    private void switchToAccount(String email) {
+        // Logout current session
+        session.logout();
+        
+        // Navigate to AuthActivity with pre-filled email
+        Intent authIntent = new Intent(this, AuthActivity.class);
+        authIntent.putExtra("prefill_email", email);
+        authIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(authIntent);
+        finish();
     }
 }

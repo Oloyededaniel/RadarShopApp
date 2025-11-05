@@ -1761,7 +1761,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     // Method to create sample orders for demo purposes
-    public void createSampleOrders(String userEmail) {
+    /*public void createSampleOrders(String userEmail) {
         if (userEmail == null || userEmail.isEmpty()) {
             userEmail = "demo@example.com";
         }
@@ -1787,5 +1787,5 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         
         createOrder(userEmail, sampleItems3, "standard", 72.98, 5.99, 6.32, 85.29,
                 "John Doe", "123 Main St", "New York", "NY", "10001", "555-0123");
-    }
+    }*/
 }

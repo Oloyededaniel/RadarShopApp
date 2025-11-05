@@ -329,10 +329,7 @@ public class AddressAutocompleteHelper {
                     Toast.makeText(activity, "Failed to fetch address details", Toast.LENGTH_SHORT).show();
                 });
     }
-    
-    /**
-     * Handle the selected place and populate address fields
-     */
+
     private void handlePlaceSelection(Place place) {
         if (place == null) return;
         
