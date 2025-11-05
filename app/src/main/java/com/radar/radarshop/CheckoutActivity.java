@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.Button;
@@ -371,7 +372,14 @@ public class CheckoutActivity extends AppCompatActivity implements OrderSuccessF
     
     private void setupAddressAutocomplete() {
         try {
+            // Ensure fields are initialized
+            if (etAddress == null || etCity == null || etState == null || etZipCode == null) {
+                Log.e("CheckoutActivity", "Address fields not initialized");
+                return;
+            }
+            
             // Initialize the autocomplete helper with address, city, state, and zip code fields
+            // TextInputEditText extends EditText, so it's compatible
             addressAutocompleteHelper = new AddressAutocompleteHelper(
                     this,
                     etAddress,
@@ -381,12 +389,14 @@ public class CheckoutActivity extends AppCompatActivity implements OrderSuccessF
             );
             
             // Attach autocomplete to the address field - shows inline dropdown as user types
-            if (etAddress != null) {
+            if (addressAutocompleteHelper != null && etAddress != null) {
                 addressAutocompleteHelper.attachToEditText(etAddress);
+                Log.d("CheckoutActivity", "Address autocomplete attached successfully");
             }
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(this, "Address autocomplete not available. Please check your API key.", Toast.LENGTH_SHORT).show();
+            Log.e("CheckoutActivity", "Error setting up address autocomplete: " + e.getMessage(), e);
+            // Don't show toast to user - autocomplete is optional
         }
     }
     

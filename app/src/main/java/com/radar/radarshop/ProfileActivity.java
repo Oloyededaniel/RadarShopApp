@@ -183,20 +183,49 @@ public class ProfileActivity extends AppCompatActivity {
                 } else {
                     // Save the address data
                     String userEmail = session.getEmail();
-                    if (!TextUtils.isEmpty(userEmail)) {
-                        boolean ok = db.updateProfile(
-                                userEmail,
-                                safeText(etFirst), safeText(etLast), safeText(etPhone),
-                                safeText(etStreet), safeText(etCity), safeText(etState),
-                                safeText(etZip), getSelectedCountry()
-                        );
-                        Toast.makeText(this, ok ? "Address saved" : "Save failed", Toast.LENGTH_SHORT).show();
-                        
-                        if (ok) {
-                            addressEditing = false;
-                            setAddressEnabled(false);
-                            tvEditAddress.setText("Edit");
-                        }
+                    if (TextUtils.isEmpty(userEmail)) {
+                        Toast.makeText(this, "User email not found", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    
+                    // Verify user exists before updating
+                    if (!db.userExists(userEmail)) {
+                        Toast.makeText(this, "User account not found", Toast.LENGTH_SHORT).show();
+                        Log.e("ProfileActivity", "User does not exist: " + userEmail);
+                        return;
+                    }
+                    
+                    // Get all field values
+                    String first = safeText(etFirst);
+                    String last = safeText(etLast);
+                    String phone = safeText(etPhone);
+                    String street = safeText(etStreet);
+                    String city = safeText(etCity);
+                    String state = safeText(etState);
+                    String zip = safeText(etZip);
+                    String country = getSelectedCountry();
+                    
+                    Log.d("ProfileActivity", "Saving address - Email: " + userEmail + 
+                        ", Street: " + street + ", City: " + city + ", State: " + state + 
+                        ", Zip: " + zip + ", Country: " + country);
+                    
+                    boolean ok = db.updateProfile(
+                            userEmail,
+                            first, last, phone,
+                            street, city, state,
+                            zip, country
+                    );
+                    
+                    if (ok) {
+                        Toast.makeText(this, "Address saved", Toast.LENGTH_SHORT).show();
+                        addressEditing = false;
+                        setAddressEnabled(false);
+                        tvEditAddress.setText("Edit");
+                        // Refresh the profile display
+                        renderProfile(userEmail);
+                    } else {
+                        Toast.makeText(this, "Save failed - please try again", Toast.LENGTH_SHORT).show();
+                        Log.e("ProfileActivity", "Failed to update profile for: " + userEmail);
                     }
                 }
             });
@@ -284,9 +313,15 @@ public class ProfileActivity extends AppCompatActivity {
             if (addressAutocompleteHelper == null) {
                 setupAddressAutocomplete();
             }
-            // Re-attach autocomplete to the field
-            if (addressAutocompleteHelper != null) {
-                addressAutocompleteHelper.attachToEditText(etStreet);
+            // Re-attach autocomplete to the field when enabled
+            if (addressAutocompleteHelper != null && etStreet.isEnabled()) {
+                try {
+                    // Force reattach to ensure it works when field becomes enabled
+                    addressAutocompleteHelper.attachToEditText(etStreet, true);
+                    Log.d("ProfileActivity", "Address autocomplete attached to enabled field");
+                } catch (Exception e) {
+                    Log.e("ProfileActivity", "Error attaching autocomplete: " + e.getMessage(), e);
+                }
             }
         }
     }
@@ -538,6 +573,12 @@ public class ProfileActivity extends AppCompatActivity {
     
     private void setupAddressAutocomplete() {
         try {
+            // Ensure fields are initialized
+            if (etStreet == null || etCity == null || etState == null || etZip == null) {
+                Log.e("ProfileActivity", "Address fields not initialized");
+                return;
+            }
+            
             // Initialize the autocomplete helper with address, city, state, zip code, and country fields
             addressAutocompleteHelper = new AddressAutocompleteHelper(
                     this,
@@ -549,11 +590,16 @@ public class ProfileActivity extends AppCompatActivity {
             );
             
             // Attach autocomplete to the street address field - shows inline dropdown as user types
-            if (etStreet != null) {
+            // Only attach if the field is enabled (editing mode)
+            if (addressAutocompleteHelper != null && etStreet != null && etStreet.isEnabled()) {
                 addressAutocompleteHelper.attachToEditText(etStreet);
+                Log.d("ProfileActivity", "Address autocomplete attached successfully");
+            } else {
+                Log.d("ProfileActivity", "Address autocomplete ready but not attached (field disabled)");
             }
         } catch (Exception e) {
             e.printStackTrace();
+            Log.e("ProfileActivity", "Error setting up address autocomplete: " + e.getMessage(), e);
             // Silently fail - autocomplete is optional
         }
     }

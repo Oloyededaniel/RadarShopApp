@@ -55,6 +55,7 @@ public class AddressAutocompleteHelper {
     private Handler handler;
     private AutocompleteSessionToken sessionToken;
     private OnAddressSelectedListener listener;
+    private boolean isAttached = false; // Track if autocomplete is already attached
     
     // Country name mapping
     private static final String[][] COUNTRY_MAPPINGS = {
@@ -132,13 +133,24 @@ public class AddressAutocompleteHelper {
      * Initialize Google Places SDK
      */
     private void initializePlaces() {
-        if (!Places.isInitialized()) {
-            Places.initialize(activity.getApplicationContext(), getApiKey(activity));
+        try {
+            String apiKey = getApiKey(activity);
+            if (apiKey == null || apiKey.isEmpty() || apiKey.equals("YOUR_GOOGLE_PLACES_API_KEY")) {
+                android.util.Log.e("AddressAutocompleteHelper", "Google Places API key not configured");
+                return;
+            }
+            
+            if (!Places.isInitialized()) {
+                Places.initialize(activity.getApplicationContext(), apiKey);
+                android.util.Log.d("AddressAutocompleteHelper", "Google Places SDK initialized");
+            }
+            placesClient = Places.createClient(activity);
+            handler = new Handler(Looper.getMainLooper());
+            sessionToken = AutocompleteSessionToken.newInstance();
+            setupSuggestionPopup();
+        } catch (Exception e) {
+            android.util.Log.e("AddressAutocompleteHelper", "Error initializing Places SDK: " + e.getMessage(), e);
         }
-        placesClient = Places.createClient(activity);
-        handler = new Handler(Looper.getMainLooper());
-        sessionToken = AutocompleteSessionToken.newInstance();
-        setupSuggestionPopup();
     }
     
     /**
@@ -168,14 +180,34 @@ public class AddressAutocompleteHelper {
         suggestionListView = new ListView(activity);
         adapter = new AutocompleteAdapter(activity, new ArrayList<>());
         suggestionListView.setAdapter(adapter);
-        suggestionListView.setDividerHeight(0);
+        suggestionListView.setDividerHeight(1);
+        suggestionListView.setDivider(activity.getResources().getDrawable(android.R.drawable.divider_horizontal_dark));
         
-        suggestionPopup = new PopupWindow(suggestionListView, 
+        // Create a container with padding for better appearance
+        android.widget.LinearLayout container = new android.widget.LinearLayout(activity);
+        container.setOrientation(android.widget.LinearLayout.VERTICAL);
+        container.addView(suggestionListView);
+        container.setPadding(0, 0, 0, 0);
+        
+        suggestionPopup = new PopupWindow(container, 
                 ViewGroup.LayoutParams.MATCH_PARENT, 
                 ViewGroup.LayoutParams.WRAP_CONTENT, true);
-        suggestionPopup.setBackgroundDrawable(activity.getResources().getDrawable(android.R.drawable.dialog_holo_light_frame));
+        
+        // Set background with elevation for visibility
+        android.graphics.drawable.GradientDrawable background = new android.graphics.drawable.GradientDrawable();
+        background.setColor(android.graphics.Color.WHITE);
+        background.setCornerRadius(8f);
+        suggestionPopup.setBackgroundDrawable(background);
+        
+        // Add elevation shadow
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            suggestionPopup.setElevation(8f);
+        }
+        
         suggestionPopup.setOutsideTouchable(true);
         suggestionPopup.setFocusable(false); // Prevent popup from intercepting keyboard events
+        suggestionPopup.setTouchable(true);
+        suggestionPopup.setInputMethodMode(PopupWindow.INPUT_METHOD_NEEDED);
         
         // Disable keyboard navigation in ListView to prevent spacebar from selecting items
         suggestionListView.setItemsCanFocus(false);
@@ -183,6 +215,7 @@ public class AddressAutocompleteHelper {
         suggestionListView.setOnItemClickListener((parent, view, position, id) -> {
             AutocompletePrediction prediction = adapter.getItem(position);
             if (prediction != null) {
+                android.util.Log.d("AddressAutocompleteHelper", "Prediction selected: " + prediction.getFullText(null));
                 fetchPlaceDetails(prediction.getPlaceId());
                 suggestionPopup.dismiss();
             }
@@ -193,7 +226,33 @@ public class AddressAutocompleteHelper {
      * Attach autocomplete to an EditText
      */
     public void attachToEditText(EditText editText) {
-        if (editText == null || addressEditText == null) return;
+        attachToEditText(editText, false);
+    }
+    
+    /**
+     * Attach autocomplete to an EditText
+     * @param editText The EditText to attach to
+     * @param forceReattach If true, reattach even if already attached
+     */
+    public void attachToEditText(EditText editText, boolean forceReattach) {
+        if (editText == null || addressEditText == null) {
+            android.util.Log.w("AddressAutocompleteHelper", "Cannot attach: editText or addressEditText is null");
+            return;
+        }
+        
+        if (placesClient == null) {
+            android.util.Log.w("AddressAutocompleteHelper", "Cannot attach: Places client not initialized");
+            return;
+        }
+        
+        // If already attached to this EditText and not forcing reattach, skip
+        if (isAttached && editText == addressEditText && !forceReattach) {
+            android.util.Log.d("AddressAutocompleteHelper", "Autocomplete already attached to this EditText");
+            return;
+        }
+        
+        // Mark as attached
+        isAttached = true;
         
         editText.addTextChangedListener(new TextWatcher() {
             @Override
@@ -215,14 +274,19 @@ public class AddressAutocompleteHelper {
                 
                 final String trimmedQuery = query.trim();
                 if (trimmedQuery.length() >= 3) {
+                    android.util.Log.d("AddressAutocompleteHelper", "Query length >= 3, will fetch predictions: " + trimmedQuery);
                     // Delay to avoid too many API calls
                     handler.postDelayed(() -> {
                         String currentText = editText.getText().toString().trim();
                         if (trimmedQuery.equals(currentText)) {
+                            android.util.Log.d("AddressAutocompleteHelper", "Fetching predictions for: " + currentText);
                             getPlacePredictions(trimmedQuery);
+                        } else {
+                            android.util.Log.d("AddressAutocompleteHelper", "Text changed, skipping prediction: " + currentText + " vs " + trimmedQuery);
                         }
                     }, 300);
                 } else {
+                    android.util.Log.d("AddressAutocompleteHelper", "Query too short, dismissing popup");
                     suggestionPopup.dismiss();
                 }
             }
@@ -249,6 +313,8 @@ public class AddressAutocompleteHelper {
             }
             return false;
         });
+        
+        android.util.Log.d("AddressAutocompleteHelper", "Autocomplete attached to EditText successfully");
     }
     
     /**
@@ -265,18 +331,47 @@ public class AddressAutocompleteHelper {
         placesClient.findAutocompletePredictions(request)
                 .addOnSuccessListener(response -> {
                     List<AutocompletePrediction> predictions = response.getAutocompletePredictions();
+                    android.util.Log.d("AddressAutocompleteHelper", 
+                        "Received " + (predictions != null ? predictions.size() : 0) + " predictions for query: " + query);
+                    
                     if (predictions != null && !predictions.isEmpty()) {
-                        adapter.clear();
-                        adapter.addAll(predictions);
-                        adapter.notifyDataSetChanged();
-                        showSuggestions();
+                        // Run on UI thread to update adapter
+                        activity.runOnUiThread(() -> {
+                            adapter.clear();
+                            adapter.addAll(predictions);
+                            adapter.notifyDataSetChanged();
+                            android.util.Log.d("AddressAutocompleteHelper", 
+                                "Adapter updated with " + predictions.size() + " items");
+                            showSuggestions();
+                        });
                     } else {
-                        suggestionPopup.dismiss();
+                        android.util.Log.d("AddressAutocompleteHelper", "No predictions found");
+                        activity.runOnUiThread(() -> suggestionPopup.dismiss());
                     }
                 })
                 .addOnFailureListener(exception -> {
-                    // Silently fail - don't show error to user
-                    suggestionPopup.dismiss();
+                    // Log error for debugging
+                    android.util.Log.e("AddressAutocompleteHelper", "Error fetching predictions: " + exception.getMessage(), exception);
+                    exception.printStackTrace();
+                    
+                    activity.runOnUiThread(() -> {
+                        suggestionPopup.dismiss();
+                        
+                        // Check if it's a network connectivity issue
+                        String errorMessage = exception.getMessage();
+                        if (errorMessage != null && (errorMessage.contains("UnknownHostException") || 
+                            errorMessage.contains("No address associated with hostname") ||
+                            errorMessage.contains("NoConnectionError"))) {
+                            // Show user-friendly message about network connectivity
+                            android.util.Log.w("AddressAutocompleteHelper", 
+                                "Network connectivity issue - please check internet connection");
+                            // Don't show toast to avoid annoying user, just log
+                        } else {
+                            // Other API errors - could be API key, quota, etc.
+                            android.util.Log.w("AddressAutocompleteHelper", 
+                                "API error: " + errorMessage);
+                        }
+                    });
                 });
     }
     
@@ -284,19 +379,102 @@ public class AddressAutocompleteHelper {
      * Show suggestion dropdown
      */
     private void showSuggestions() {
-        if (addressEditText == null || suggestionPopup == null) return;
-        
-        if (!suggestionPopup.isShowing()) {
-            int[] location = new int[2];
-            addressEditText.getLocationOnScreen(location);
-            
-            // Calculate popup position
-            int popupWidth = addressEditText.getWidth();
-            int popupHeight = Math.min(400, adapter.getCount() * 80); // Limit height
-            
-            suggestionPopup.setWidth(popupWidth);
-            suggestionPopup.showAsDropDown(addressEditText, 0, 0);
+        if (addressEditText == null || suggestionPopup == null || adapter == null) {
+            android.util.Log.w("AddressAutocompleteHelper", "Cannot show suggestions: null check failed");
+            return;
         }
+        
+        if (adapter.getCount() == 0) {
+            android.util.Log.d("AddressAutocompleteHelper", "No suggestions to show");
+            suggestionPopup.dismiss();
+            return;
+        }
+        
+        // Run on UI thread to ensure view is laid out
+        addressEditText.post(() -> {
+            try {
+                // Dismiss any existing popup first
+                if (suggestionPopup.isShowing()) {
+                    suggestionPopup.dismiss();
+                }
+                
+                // Wait a bit for any dismissal to complete
+                addressEditText.postDelayed(() -> {
+                    try {
+                        // Find the anchor view - could be EditText or its TextInputLayout parent
+                        View anchorView = addressEditText;
+                        
+                        // Try to find TextInputLayout parent for better positioning
+                        View parent = (View) addressEditText.getParent();
+                        while (parent != null) {
+                            if (parent.getClass().getName().contains("TextInputLayout")) {
+                                anchorView = parent;
+                                android.util.Log.d("AddressAutocompleteHelper", "Using TextInputLayout as anchor");
+                                break;
+                            }
+                            if (parent.getParent() instanceof View) {
+                                parent = (View) parent.getParent();
+                            } else {
+                                break;
+                            }
+                        }
+                        
+                        // Get the width of the anchor view
+                        int popupWidth = anchorView.getWidth();
+                        if (popupWidth <= 0) {
+                            // Measure the view if width is 0
+                            anchorView.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+                            popupWidth = anchorView.getMeasuredWidth();
+                        }
+                        
+                        if (popupWidth <= 0) {
+                            // Fallback to screen width minus padding
+                            android.util.DisplayMetrics metrics = activity.getResources().getDisplayMetrics();
+                            popupWidth = metrics.widthPixels - (int)(40 * metrics.density); // 20dp padding on each side
+                            android.util.Log.d("AddressAutocompleteHelper", "Using screen width fallback: " + popupWidth);
+                        }
+                        
+                        // Calculate height based on number of items, with max limit
+                        int itemHeight = (int)(60 * activity.getResources().getDisplayMetrics().density); // 60dp per item
+                        int calculatedHeight = adapter.getCount() * itemHeight;
+                        int maxHeight = (int)(400 * activity.getResources().getDisplayMetrics().density); // 400dp max
+                        int popupHeight = Math.min(calculatedHeight, maxHeight);
+                        
+                        // Ensure minimum height
+                        int minHeight = (int)(100 * activity.getResources().getDisplayMetrics().density);
+                        if (popupHeight < minHeight) {
+                            popupHeight = minHeight;
+                        }
+                        
+                        android.util.Log.d("AddressAutocompleteHelper", 
+                            String.format("Showing popup: width=%d, height=%d, items=%d, anchor=%s", 
+                                popupWidth, popupHeight, adapter.getCount(), anchorView.getClass().getSimpleName()));
+                        
+                        suggestionPopup.setWidth(popupWidth);
+                        suggestionPopup.setHeight(popupHeight);
+                        
+                        // Show popup below the anchor view
+                        suggestionPopup.showAsDropDown(anchorView, 0, 0);
+                        
+                        // Verify popup is showing
+                        if (suggestionPopup.isShowing()) {
+                            android.util.Log.d("AddressAutocompleteHelper", "Popup is now showing");
+                        } else {
+                            android.util.Log.w("AddressAutocompleteHelper", "Popup failed to show");
+                        }
+                        
+                    } catch (Exception e) {
+                        android.util.Log.e("AddressAutocompleteHelper", "Error showing suggestions: " + e.getMessage(), e);
+                        e.printStackTrace();
+                    }
+                }, 50); // Small delay to ensure dismissal is complete
+                
+            } catch (Exception e) {
+                android.util.Log.e("AddressAutocompleteHelper", "Error in post: " + e.getMessage(), e);
+                e.printStackTrace();
+            }
+        });
     }
     
     /**
@@ -423,33 +601,90 @@ public class AddressAutocompleteHelper {
      * Set country spinner based on country name
      */
     private void setCountryFromName(String countryName) {
-        if (countrySpinner == null) return;
+        if (countrySpinner == null || TextUtils.isEmpty(countryName)) return;
         
         try {
             android.widget.ArrayAdapter<String> adapter = (android.widget.ArrayAdapter<String>) countrySpinner.getAdapter();
             if (adapter != null) {
+                String normalizedCountryName = countryName.trim();
+                
                 // Try to find exact match first
                 for (int i = 0; i < adapter.getCount(); i++) {
                     String item = adapter.getItem(i);
-                    if (item != null && item.equalsIgnoreCase(countryName)) {
+                    if (item != null && item.equalsIgnoreCase(normalizedCountryName)) {
                         countrySpinner.setSelection(i);
+                        android.util.Log.d("AddressAutocompleteHelper", "Country matched exactly: " + item);
                         return;
                     }
                 }
                 
-                // Try partial match
+                // Try partial match (country name contains spinner item or vice versa)
                 for (int i = 0; i < adapter.getCount(); i++) {
                     String item = adapter.getItem(i);
-                    if (item != null && countryName.toLowerCase().contains(item.toLowerCase()) ||
-                        item != null && item.toLowerCase().contains(countryName.toLowerCase())) {
-                        countrySpinner.setSelection(i);
-                        return;
+                    if (item != null) {
+                        String lowerItem = item.toLowerCase();
+                        String lowerCountry = normalizedCountryName.toLowerCase();
+                        if (lowerCountry.contains(lowerItem) || lowerItem.contains(lowerCountry)) {
+                            countrySpinner.setSelection(i);
+                            android.util.Log.d("AddressAutocompleteHelper", "Country matched partially: " + item + " from " + normalizedCountryName);
+                            return;
+                        }
                     }
                 }
+                
+                // Try mapping common country name variations
+                String mappedCountry = mapCountryName(normalizedCountryName);
+                if (!TextUtils.isEmpty(mappedCountry)) {
+                    for (int i = 0; i < adapter.getCount(); i++) {
+                        String item = adapter.getItem(i);
+                        if (item != null && item.equalsIgnoreCase(mappedCountry)) {
+                            countrySpinner.setSelection(i);
+                            android.util.Log.d("AddressAutocompleteHelper", "Country mapped: " + item + " from " + normalizedCountryName);
+                            return;
+                        }
+                    }
+                }
+                
+                android.util.Log.w("AddressAutocompleteHelper", "Could not match country: " + normalizedCountryName);
             }
         } catch (Exception e) {
+            android.util.Log.e("AddressAutocompleteHelper", "Error setting country: " + e.getMessage(), e);
             e.printStackTrace();
         }
+    }
+    
+    /**
+     * Map common country name variations to standard names
+     */
+    private String mapCountryName(String countryName) {
+        if (TextUtils.isEmpty(countryName)) return null;
+        
+        String lower = countryName.toLowerCase();
+        
+        // Map common variations
+        if (lower.contains("united states") || lower.contains("usa") || lower.contains("u.s.") || lower.contains("us")) {
+            return "United States";
+        } else if (lower.contains("united kingdom") || lower.contains("uk") || lower.contains("britain") || lower.contains("england")) {
+            return "United Kingdom";
+        } else if (lower.equals("canada") || lower.equals("ca")) {
+            return "Canada";
+        } else if (lower.contains("australia") || lower.equals("au")) {
+            return "Australia";
+        } else if (lower.contains("germany") || lower.equals("de") || lower.contains("deutschland")) {
+            return "Germany";
+        } else if (lower.contains("france") || lower.equals("fr")) {
+            return "France";
+        } else if (lower.contains("japan") || lower.equals("jp")) {
+            return "Japan";
+        } else if (lower.contains("brazil") || lower.equals("br")) {
+            return "Brazil";
+        } else if (lower.contains("india") || lower.equals("in")) {
+            return "India";
+        } else if (lower.contains("mexico") || lower.equals("mx")) {
+            return "Mexico";
+        }
+        
+        return null;
     }
     
     /**
