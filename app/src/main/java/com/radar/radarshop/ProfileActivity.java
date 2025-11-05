@@ -40,7 +40,8 @@ public class ProfileActivity extends AppCompatActivity {
 
     private DatabaseHelper db;
     private SessionManager session;
-
+    private AddressAutocompleteHelper addressAutocompleteHelper;
+    
     private boolean personalEditing = false;
     private boolean addressEditing  = false;
     private boolean isPasswordFragmentVisible = false;
@@ -107,6 +108,9 @@ public class ProfileActivity extends AppCompatActivity {
         
         // Add postal code formatting
         addPostalCodeFormatting();
+        
+        // Setup address autocomplete
+        setupAddressAutocomplete();
 
         // --- Listeners (only attach if views exist) ---
         if (btnBack != null) {
@@ -256,6 +260,18 @@ public class ProfileActivity extends AppCompatActivity {
         setEnabled(etState, enabled);
         setEnabled(etZip, enabled);
         if (spinnerCountry != null) spinnerCountry.setEnabled(enabled);
+        
+        // Update autocomplete when address editing is enabled
+        if (enabled && etStreet != null) {
+            // Ensure autocomplete helper is initialized
+            if (addressAutocompleteHelper == null) {
+                setupAddressAutocomplete();
+            }
+            // Re-attach autocomplete to the field
+            if (addressAutocompleteHelper != null) {
+                addressAutocompleteHelper.attachToEditText(etStreet);
+            }
+        }
     }
 
 
@@ -488,5 +504,27 @@ public class ProfileActivity extends AppCompatActivity {
             return cleaned.substring(0, 3) + " " + cleaned.substring(3, Math.min(6, cleaned.length()));
         }
         return cleaned;
+    }
+    
+    private void setupAddressAutocomplete() {
+        try {
+            // Initialize the autocomplete helper with address, city, state, zip code, and country fields
+            addressAutocompleteHelper = new AddressAutocompleteHelper(
+                    this,
+                    etStreet,
+                    etCity,
+                    etState,
+                    etZip,
+                    spinnerCountry
+            );
+            
+            // Attach autocomplete to the street address field - shows inline dropdown as user types
+            if (etStreet != null) {
+                addressAutocompleteHelper.attachToEditText(etStreet);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Silently fail - autocomplete is optional
+        }
     }
 }

@@ -72,6 +72,7 @@ public class CheckoutActivity extends AppCompatActivity implements OrderSuccessF
     
     private DatabaseHelper databaseHelper;
     private SessionManager sessionManager;
+    private AddressAutocompleteHelper addressAutocompleteHelper;
     
     private DecimalFormat currencyFormat = new DecimalFormat("$#,##0.00");
     
@@ -101,6 +102,9 @@ public class CheckoutActivity extends AppCompatActivity implements OrderSuccessF
         
         setupListeners();
         Toast.makeText(this, "CheckoutActivity: setupListeners completed", Toast.LENGTH_SHORT).show();
+        
+        setupAddressAutocomplete();
+        Toast.makeText(this, "CheckoutActivity: setupAddressAutocomplete completed", Toast.LENGTH_SHORT).show();
         
         calculateTotals();
         Toast.makeText(this, "CheckoutActivity: calculateTotals completed", Toast.LENGTH_SHORT).show();
@@ -363,6 +367,27 @@ public class CheckoutActivity extends AppCompatActivity implements OrderSuccessF
         
         // Add text watchers for real-time validation
         addTextWatchers();
+    }
+    
+    private void setupAddressAutocomplete() {
+        try {
+            // Initialize the autocomplete helper with address, city, state, and zip code fields
+            addressAutocompleteHelper = new AddressAutocompleteHelper(
+                    this,
+                    etAddress,
+                    etCity,
+                    etState,
+                    etZipCode
+            );
+            
+            // Attach autocomplete to the address field - shows inline dropdown as user types
+            if (etAddress != null) {
+                addressAutocompleteHelper.attachToEditText(etAddress);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Address autocomplete not available. Please check your API key.", Toast.LENGTH_SHORT).show();
+        }
     }
     
     private void addTextWatchers() {
@@ -790,4 +815,5 @@ public class CheckoutActivity extends AppCompatActivity implements OrderSuccessF
         startActivity(intent);
         finish();
     }
+    
 }

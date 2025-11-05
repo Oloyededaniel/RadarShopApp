@@ -51,6 +51,7 @@ dependencies {
     implementation(libs.recyclerview)
     implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation("androidx.coordinatorlayout:coordinatorlayout:1.2.0")
+    implementation("com.google.android.libraries.places:places:3.4.0")
    /*
     // Compose dependencies
     implementation("androidx.compose.ui:ui:1.5.4")

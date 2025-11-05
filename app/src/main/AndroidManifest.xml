@@ -2,6 +2,8 @@
 <manifest package="com.radar.radarshop"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:allowBackup="true"
         android:label="RadarShop"
@@ -9,6 +11,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.RadarShop">
+
+        <!-- Google Places API Key -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyCZi-TCd3WybWTGu0G1BOufNMuQhEzZzPY" />
 
         <activity
             android:name=".SplashActivity"
