@@ -76,16 +76,6 @@
 
                 </LinearLayout>
 
-                <!-- Notification Icon -->
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_notifications"
-                    android:background="@drawable/circle_button_background"
-                    android:padding="8dp"
-                    android:alpha="0.8"
-                    android:contentDescription="Notifications" />
-
             </LinearLayout>
 
             <!-- Stylish Search Bar -->

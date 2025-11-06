@@ -19,6 +19,7 @@
         android:scaleType="centerInside"
         android:padding="24dp" />
 
+
     <!-- Main Heading -->
     <TextView
         android:id="@+id/tvSuccessTitle"

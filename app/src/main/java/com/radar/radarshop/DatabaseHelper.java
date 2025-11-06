@@ -622,18 +622,44 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public boolean updateProfile(String email, String first, String last, String phone,
                                  String street, String city, String state, String zip, String country) {
-        String normEmail = normalizeEmail(email);
-        ContentValues cv = new ContentValues();
-        cv.put(COL_FIRST, nonNull(first));
-        cv.put(COL_LAST, nonNull(last));
-        cv.put(COL_PHONE, nonNull(phone));
-        cv.put(COL_STREET, nonNull(street));
-        cv.put(COL_CITY, nonNull(city));
-        cv.put(COL_STATE, nonNull(state));
-        cv.put(COL_ZIP, nonNull(zip));
-        cv.put(COL_COUNTRY, nonNull(country));
-        int rows = getWritableDatabase().update(TABLE_USERS, cv, COL_EMAIL + "=?", new String[]{normEmail});
-        return rows > 0;
+        try {
+            String normEmail = normalizeEmail(email);
+            if (normEmail.isEmpty()) {
+                android.util.Log.e("DatabaseHelper", "Cannot update profile: email is empty");
+                return false;
+            }
+            
+            // Verify user exists before updating
+            if (!userExists(normEmail)) {
+                android.util.Log.e("DatabaseHelper", "Cannot update profile: user does not exist: " + normEmail);
+                return false;
+            }
+            
+            ContentValues cv = new ContentValues();
+            cv.put(COL_FIRST, nonNull(first));
+            cv.put(COL_LAST, nonNull(last));
+            cv.put(COL_PHONE, nonNull(phone));
+            cv.put(COL_STREET, nonNull(street));
+            cv.put(COL_CITY, nonNull(city));
+            cv.put(COL_STATE, nonNull(state));
+            cv.put(COL_ZIP, nonNull(zip));
+            cv.put(COL_COUNTRY, nonNull(country));
+            
+            int rows = getWritableDatabase().update(TABLE_USERS, cv, COL_EMAIL + "=?", new String[]{normEmail});
+            boolean success = rows > 0;
+            
+            if (!success) {
+                android.util.Log.e("DatabaseHelper", "Update profile failed: 0 rows updated for email: " + normEmail);
+            } else {
+                android.util.Log.d("DatabaseHelper", "Profile updated successfully for: " + normEmail);
+            }
+            
+            return success;
+        } catch (Exception e) {
+            android.util.Log.e("DatabaseHelper", "Exception updating profile: " + e.getMessage(), e);
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public boolean changePassword(String email, String newPlainPassword) {
@@ -1254,7 +1280,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return getWritableDatabase().insert(TABLE_CATEGORIES, null, cv);
     }
 
-    /* ENHANCED PRODUCTS */
 
     public long insertEnhancedProduct(String name, String description, String detailedDescription,
                                      double price, int categoryId, int stockQuantity, String sku,
@@ -1762,7 +1787,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     // Method to create sample orders for demo purposes
-    public void createSampleOrders(String userEmail) {
+    /*public void createSampleOrders(String userEmail) {
         if (userEmail == null || userEmail.isEmpty()) {
             userEmail = "demo@example.com";
         }
@@ -1788,5 +1813,5 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         
         createOrder(userEmail, sampleItems3, "standard", 72.98, 5.99, 6.32, 85.29,
                 "John Doe", "123 Main St", "New York", "NY", "10001", "555-0123");
-    }
+    }*/
 }

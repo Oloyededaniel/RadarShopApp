@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
 }
 
 android {
@@ -50,6 +51,19 @@ dependencies {
     implementation(libs.recyclerview)
     implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation("androidx.coordinatorlayout:coordinatorlayout:1.2.0")
+    implementation("com.google.android.libraries.places:places:3.4.0")
+   /*
+    // Compose dependencies
+    implementation("androidx.compose.ui:ui:1.5.4")
+    implementation("androidx.compose.ui:ui-tooling:1.5.4")
+    implementation("androidx.compose.foundation:foundation:1.5.4")
+    implementation("androidx.compose.material:material:1.5.4")
+    implementation("androidx.activity:activity-compose:1.8.2")
+    implementation("androidx.fragment:fragment-compose:1.6.2")
+    
+    // Lottie Compose
+    implementation("com.airbnb.android:lottie-compose:6.1.0")*/
+    
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

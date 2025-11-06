@@ -35,6 +35,18 @@ public class SignInFragment extends Fragment {
         etEmailLogin = v.findViewById(R.id.etEmailLogin);
         etPasswordLogin = v.findViewById(R.id.etPasswordLogin);
         btnSignIn = v.findViewById(R.id.btnSignIn);
+        
+        // Prefill email if provided
+        if (getArguments() != null) {
+            String prefillEmail = getArguments().getString("prefill_email");
+            if (prefillEmail != null && etEmailLogin != null) {
+                etEmailLogin.setText(prefillEmail);
+                // Focus on password field for better UX
+                if (etPasswordLogin != null) {
+                    etPasswordLogin.requestFocus();
+                }
+            }
+        }
 
         btnSignIn.setOnClickListener(view -> {
             String email = etEmailLogin.getText() == null ? "" : etEmailLogin.getText().toString().trim();

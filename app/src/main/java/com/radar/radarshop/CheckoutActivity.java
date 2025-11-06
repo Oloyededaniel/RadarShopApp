@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.Button;
@@ -72,6 +73,7 @@ public class CheckoutActivity extends AppCompatActivity implements OrderSuccessF
     
     private DatabaseHelper databaseHelper;
     private SessionManager sessionManager;
+    private AddressAutocompleteHelper addressAutocompleteHelper;
     
     private DecimalFormat currencyFormat = new DecimalFormat("$#,##0.00");
     
@@ -101,6 +103,9 @@ public class CheckoutActivity extends AppCompatActivity implements OrderSuccessF
         
         setupListeners();
         Toast.makeText(this, "CheckoutActivity: setupListeners completed", Toast.LENGTH_SHORT).show();
+        
+        setupAddressAutocomplete();
+        Toast.makeText(this, "CheckoutActivity: setupAddressAutocomplete completed", Toast.LENGTH_SHORT).show();
         
         calculateTotals();
         Toast.makeText(this, "CheckoutActivity: calculateTotals completed", Toast.LENGTH_SHORT).show();
@@ -363,6 +368,36 @@ public class CheckoutActivity extends AppCompatActivity implements OrderSuccessF
         
         // Add text watchers for real-time validation
         addTextWatchers();
+    }
+    
+    private void setupAddressAutocomplete() {
+        try {
+            // Ensure fields are initialized
+            if (etAddress == null || etCity == null || etState == null || etZipCode == null) {
+                Log.e("CheckoutActivity", "Address fields not initialized");
+                return;
+            }
+            
+            // Initialize the autocomplete helper with address, city, state, and zip code fields
+            // TextInputEditText extends EditText, so it's compatible
+            addressAutocompleteHelper = new AddressAutocompleteHelper(
+                    this,
+                    etAddress,
+                    etCity,
+                    etState,
+                    etZipCode
+            );
+            
+            // Attach autocomplete to the address field - shows inline dropdown as user types
+            if (addressAutocompleteHelper != null && etAddress != null) {
+                addressAutocompleteHelper.attachToEditText(etAddress);
+                Log.d("CheckoutActivity", "Address autocomplete attached successfully");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Log.e("CheckoutActivity", "Error setting up address autocomplete: " + e.getMessage(), e);
+            // Don't show toast to user - autocomplete is optional
+        }
     }
     
     private void addTextWatchers() {
@@ -790,4 +825,5 @@ public class CheckoutActivity extends AppCompatActivity implements OrderSuccessF
         startActivity(intent);
         finish();
     }
+    
 }
