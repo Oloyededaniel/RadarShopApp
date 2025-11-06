@@ -2,8 +2,11 @@ package com.radar.radarshop;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -20,22 +23,31 @@ public class ShopActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_shop);
-        
-        // Initialize fragment
-        shopFragment = new ShopFragment();
-        
-        // Load the shop fragment
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, shopFragment)
-                .commit();
-        
-        // Setup bottom navigation
-        setupBottomNavigation();
-        
-        // Handle intent extras after fragment is loaded
-        getSupportFragmentManager().executePendingTransactions();
-        handleIntentExtras();
+        try {
+            setContentView(R.layout.activity_shop);
+            
+            // Setup bottom navigation first
+            setupBottomNavigation();
+            
+            // Initialize fragment
+            shopFragment = new ShopFragment();
+            
+            // Load the shop fragment
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, shopFragment)
+                    .commitNow(); // Use commitNow() to ensure fragment is added immediately
+            
+            // Handle intent extras after fragment is loaded and views are ready
+            // Post with a delay to ensure fragment's onViewCreated has been called
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                handleIntentExtras();
+            }, 200);
+        } catch (Exception e) {
+            android.util.Log.e("ShopActivity", "Error in onCreate", e);
+            e.printStackTrace();
+            Toast.makeText(this, "Error loading shop. Please try again.", Toast.LENGTH_SHORT).show();
+            finish();
+        }
     }
 
     private void setupBottomNavigation() {
@@ -68,19 +80,23 @@ public class ShopActivity extends AppCompatActivity {
     }
 
     private void handleIntentExtras() {
-        Intent intent = getIntent();
-        if (intent != null) {
-            // Handle category filter
-            int categoryFilter = intent.getIntExtra("category_filter", -1);
-            if (categoryFilter != -1 && shopFragment != null) {
-                shopFragment.setCategoryFilter(categoryFilter);
+        try {
+            Intent intent = getIntent();
+            if (intent != null && shopFragment != null && shopFragment.isAdded()) {
+                // Handle category filter
+                int categoryFilter = intent.getIntExtra("category_filter", -1);
+                if (categoryFilter != -1) {
+                    shopFragment.setCategoryFilter(categoryFilter);
+                }
+                
+                // Handle search query
+                String searchQuery = intent.getStringExtra("initial_query");
+                if (searchQuery != null && !searchQuery.isEmpty()) {
+                    shopFragment.setSearchQuery(searchQuery);
+                }
             }
-            
-            // Handle search query
-            String searchQuery = intent.getStringExtra("initial_query");
-            if (searchQuery != null && !searchQuery.isEmpty() && shopFragment != null) {
-                shopFragment.setSearchQuery(searchQuery);
-            }
+        } catch (Exception e) {
+            android.util.Log.e("ShopActivity", "Error handling intent extras", e);
         }
     }
 

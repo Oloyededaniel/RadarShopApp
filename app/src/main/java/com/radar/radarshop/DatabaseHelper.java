@@ -15,7 +15,7 @@ import java.util.Locale;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DB_NAME = "radarshop.db";
-    private static final int DB_VERSION = 9;
+    private static final int DB_VERSION = 10; // Incremented to ensure cart table exists
 
     // Users
     public static final String TABLE_USERS = "users";
@@ -518,6 +518,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             );
         }
         
+        if (oldVersion < 10) {
+            // Ensure cart table exists for version 10
+            db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS " + TABLE_CART + " (" +
+                            COL_CART_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                            COL_CART_EMAIL + " TEXT, " +
+                            COL_CART_PRODUCT_ID + " INTEGER, " +
+                            COL_CART_QUANTITY + " INTEGER, " +
+                            "UNIQUE(" + COL_CART_EMAIL + ", " + COL_CART_PRODUCT_ID + ")" +
+                            ");"
+            );
+        }
+        
         // For major version changes, recreate all tables
         if (oldVersion < 7) {
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
@@ -961,37 +974,62 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     public int getCartQuantity(String userEmail, int productId) {
-        String sql = "SELECT " + COL_CART_QUANTITY + " FROM " + TABLE_CART +
-                " WHERE " + COL_CART_EMAIL + "=? AND " + COL_CART_PRODUCT_ID + "=?";
-        
-        try (Cursor c = getReadableDatabase().rawQuery(sql, new String[]{userEmail, String.valueOf(productId)})) {
-            if (c.moveToFirst()) {
-                return c.getInt(0);
+        try {
+            String sql = "SELECT " + COL_CART_QUANTITY + " FROM " + TABLE_CART +
+                    " WHERE " + COL_CART_EMAIL + "=? AND " + COL_CART_PRODUCT_ID + "=?";
+            
+            try (Cursor c = getReadableDatabase().rawQuery(sql, new String[]{userEmail, String.valueOf(productId)})) {
+                if (c.moveToFirst()) {
+                    return c.getInt(0);
+                }
             }
+        } catch (android.database.sqlite.SQLiteException e) {
+            android.util.Log.e("DatabaseHelper", "Error getting cart quantity - table may not exist", e);
+            // Return 0 gracefully - the table will be created on next app restart with new DB version
+            return 0;
+        } catch (Exception e) {
+            android.util.Log.e("DatabaseHelper", "Error getting cart quantity", e);
+            return 0;
         }
         return 0;
     }
 
     public int getCartItemCount(String userEmail) {
-        String sql = "SELECT SUM(" + COL_CART_QUANTITY + ") FROM " + TABLE_CART +
-                " WHERE " + COL_CART_EMAIL + "=?";
-        
-        try (Cursor c = getReadableDatabase().rawQuery(sql, new String[]{userEmail})) {
-            if (c.moveToFirst()) {
-                return c.getInt(0);
+        try {
+            String sql = "SELECT SUM(" + COL_CART_QUANTITY + ") FROM " + TABLE_CART +
+                    " WHERE " + COL_CART_EMAIL + "=?";
+            
+            try (Cursor c = getReadableDatabase().rawQuery(sql, new String[]{userEmail})) {
+                if (c.moveToFirst()) {
+                    return c.getInt(0);
+                }
             }
+        } catch (android.database.sqlite.SQLiteException e) {
+            android.util.Log.e("DatabaseHelper", "Error getting cart item count - table may not exist", e);
+            return 0;
+        } catch (Exception e) {
+            android.util.Log.e("DatabaseHelper", "Error getting cart item count", e);
+            return 0;
         }
         return 0;
     }
 
     public boolean isInCart(String userEmail, int productId) {
-        String sql = "SELECT COUNT(*) FROM " + TABLE_CART +
-                " WHERE " + COL_CART_EMAIL + "=? AND " + COL_CART_PRODUCT_ID + "=?";
-        
-        try (Cursor c = getReadableDatabase().rawQuery(sql, new String[]{userEmail, String.valueOf(productId)})) {
-            if (c.moveToFirst()) {
-                return c.getInt(0) > 0;
+        try {
+            String sql = "SELECT COUNT(*) FROM " + TABLE_CART +
+                    " WHERE " + COL_CART_EMAIL + "=? AND " + COL_CART_PRODUCT_ID + "=?";
+            
+            try (Cursor c = getReadableDatabase().rawQuery(sql, new String[]{userEmail, String.valueOf(productId)})) {
+                if (c.moveToFirst()) {
+                    return c.getInt(0) > 0;
+                }
             }
+        } catch (android.database.sqlite.SQLiteException e) {
+            android.util.Log.e("DatabaseHelper", "Error checking if in cart - table may not exist", e);
+            return false;
+        } catch (Exception e) {
+            android.util.Log.e("DatabaseHelper", "Error checking if in cart", e);
+            return false;
         }
         return false;
     }

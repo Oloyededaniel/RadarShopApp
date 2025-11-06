@@ -48,25 +48,74 @@ public class ShopFragment extends Fragment implements ProductCardAdapter.OnProdu
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_shop, container, false);
+        try {
+            return inflater.inflate(R.layout.fragment_shop, container, false);
+        } catch (Exception e) {
+            android.util.Log.e("ShopFragment", "Error inflating layout", e);
+            e.printStackTrace();
+            return null;
+        }
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         
-        // Initialize components
-        initializeViews(view);
-        initializeDatabase();
-        setupRecyclerView();
-        setupSearch();
-        setupFilters();
-        setupCartFab();
-        loadProducts();
-        updateCartBadge();
+        // Check if fragment is still attached
+        if (getContext() == null || getActivity() == null || getActivity().isFinishing()) {
+            android.util.Log.w("ShopFragment", "Fragment not attached, skipping initialization");
+            return;
+        }
         
-        // Apply any pending category filter
-        applyPendingCategoryFilter();
+        try {
+            // Initialize components in order
+            initializeViews(view);
+            
+            // Initialize database first - this is critical
+            initializeDatabase();
+            
+            // Setup UI components only if database is initialized
+            if (databaseHelper != null && getContext() != null) {
+                setupRecyclerView();
+                setupSearch();
+                setupFilters();
+                setupCartFab();
+                
+                // Load products and update UI
+                loadProducts();
+                
+                // Update cart badge only if session manager is ready
+                if (sessionManager != null) {
+                    updateCartBadge();
+                }
+                
+                // Apply any pending category filter
+                applyPendingCategoryFilter();
+            } else {
+                android.util.Log.w("ShopFragment", "Database helper not initialized, retrying...");
+                // Retry after a short delay if database isn't ready
+                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                    if (databaseHelper != null && getContext() != null && !isDetached()) {
+                        setupRecyclerView();
+                        setupSearch();
+                        setupFilters();
+                        setupCartFab();
+                        loadProducts();
+                        if (sessionManager != null) {
+                            updateCartBadge();
+                        }
+                        applyPendingCategoryFilter();
+                    }
+                }, 100);
+            }
+        } catch (Exception e) {
+            // Log error and show user-friendly message
+            android.util.Log.e("ShopFragment", "Error initializing fragment", e);
+            e.printStackTrace();
+            if (getContext() != null && !isDetached()) {
+                Toast.makeText(getContext(), "Error loading shop. Please try again.", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private void initializeViews(View view) {
@@ -84,29 +133,56 @@ public class ShopFragment extends Fragment implements ProductCardAdapter.OnProdu
     }
 
     private void initializeDatabase() {
-        databaseHelper = new DatabaseHelper(getContext());
-        sessionManager = new SessionManager(getContext());
-        
-        // Ensure we have demo data
-        databaseHelper.ensureSeedProducts(20);
+        if (getContext() == null) return;
+        try {
+            databaseHelper = new DatabaseHelper(getContext());
+            sessionManager = new SessionManager(getContext());
+            
+            // Ensure we have demo data - do this in background to avoid blocking UI
+            if (databaseHelper != null) {
+                new Thread(() -> {
+                    try {
+                        databaseHelper.ensureSeedProducts(20);
+                    } catch (Exception e) {
+                        android.util.Log.e("ShopFragment", "Error seeding products", e);
+                    }
+                }).start();
+            }
+        } catch (Exception e) {
+            android.util.Log.e("ShopFragment", "Error initializing database", e);
+            e.printStackTrace();
+        }
     }
 
     private void setupRecyclerView() {
-        // Use GridLayoutManager for 2 columns
-        GridLayoutManager layoutManager = new GridLayoutManager(getContext(), 2);
-        rvProducts.setLayoutManager(layoutManager);
-        
-        // Initialize adapter
-        filteredProducts = new ArrayList<>();
-        productAdapter = new ProductCardAdapter(getContext(), filteredProducts, databaseHelper);
-        productAdapter.setOnProductInteractionListener(this);
-        rvProducts.setAdapter(productAdapter);
-        
-        // Add spacing between items
-        rvProducts.addItemDecoration(new GridSpacingItemDecoration(2, 16, true));
+        try {
+            if (rvProducts == null || getContext() == null || databaseHelper == null) {
+                android.util.Log.w("ShopFragment", "Cannot setup RecyclerView - missing dependencies");
+                return;
+            }
+            
+            // Use GridLayoutManager for 2 columns
+            GridLayoutManager layoutManager = new GridLayoutManager(getContext(), 2);
+            rvProducts.setLayoutManager(layoutManager);
+            
+            // Initialize adapter
+            if (filteredProducts == null) {
+                filteredProducts = new ArrayList<>();
+            }
+            productAdapter = new ProductCardAdapter(getContext(), filteredProducts, databaseHelper);
+            productAdapter.setOnProductInteractionListener(this);
+            rvProducts.setAdapter(productAdapter);
+            
+            // Add spacing between items
+            rvProducts.addItemDecoration(new GridSpacingItemDecoration(2, 16, true));
+        } catch (Exception e) {
+            android.util.Log.e("ShopFragment", "Error setting up RecyclerView", e);
+            e.printStackTrace();
+        }
     }
 
     private void setupSearch() {
+        if (etSearch == null) return;
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -117,44 +193,61 @@ public class ShopFragment extends Fragment implements ProductCardAdapter.OnProdu
             @Override
             public void afterTextChanged(Editable s) {
                 currentSearchQuery = s.toString().trim();
-                filterProducts();
+                if (allProducts != null && productAdapter != null) {
+                    filterProducts();
+                }
             }
         });
     }
 
     private void setupFilters() {
+        // Only set up listeners if views are initialized
+        if (chipAll == null || chipElectronics == null || chipClothing == null || chipHome == null) {
+            return;
+        }
+        
         // Set up chip listeners
         chipAll.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
                 currentCategoryFilter = -1;
-                filterProducts();
+                if (allProducts != null && productAdapter != null) {
+                    filterProducts();
+                }
             }
         });
 
         chipElectronics.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
                 currentCategoryFilter = 1; // Electronics category ID
-                filterProducts();
+                if (allProducts != null && productAdapter != null) {
+                    filterProducts();
+                }
             }
         });
 
         chipClothing.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
                 currentCategoryFilter = 3; // Sportswear category ID
-                filterProducts();
+                if (allProducts != null && productAdapter != null) {
+                    filterProducts();
+                }
             }
         });
 
         chipHome.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
                 currentCategoryFilter = 6; // Home category ID
-                filterProducts();
+                if (allProducts != null && productAdapter != null) {
+                    filterProducts();
+                }
             }
         });
     }
 
     private void setupCartFab() {
+        if (fabCart == null) return;
         fabCart.setOnClickListener(v -> {
+            if (getContext() == null) return;
             Intent intent = new Intent(getContext(), CartActivity.class);
             intent.putExtra("from_activity", "ShopFragment");
             startActivity(intent);
@@ -162,24 +255,45 @@ public class ShopFragment extends Fragment implements ProductCardAdapter.OnProdu
     }
 
     private void loadProducts() {
+        if (databaseHelper == null) return;
+        
         showLoading(true);
         
         // Load all products in background
         new Thread(() -> {
-            allProducts = databaseHelper.getAllProducts();
+            if (databaseHelper == null) return;
             
-            // Update UI on main thread
-            if (getActivity() != null) {
-                getActivity().runOnUiThread(() -> {
-                    showLoading(false);
-                    filterProducts();
-                });
+            try {
+                allProducts = databaseHelper.getAllProducts();
+                
+                // Update UI on main thread
+                if (getActivity() != null && !getActivity().isFinishing()) {
+                    getActivity().runOnUiThread(() -> {
+                        if (getActivity() == null || getActivity().isFinishing()) return;
+                        showLoading(false);
+                        // Apply any pending category filter before filtering
+                        applyPendingCategoryFilter();
+                        filterProducts();
+                    });
+                }
+            } catch (Exception e) {
+                // Handle any database errors
+                if (getActivity() != null && !getActivity().isFinishing()) {
+                    getActivity().runOnUiThread(() -> {
+                        if (getActivity() == null || getActivity().isFinishing()) return;
+                        showLoading(false);
+                        Toast.makeText(getContext(), "Error loading products", Toast.LENGTH_SHORT).show();
+                    });
+                }
             }
         }).start();
     }
 
     private void filterProducts() {
-        if (allProducts == null) return;
+        if (allProducts == null || productAdapter == null) return;
+        if (filteredProducts == null) {
+            filteredProducts = new ArrayList<>();
+        }
 
         filteredProducts.clear();
         
@@ -202,6 +316,11 @@ public class ShopFragment extends Fragment implements ProductCardAdapter.OnProdu
     }
 
     private void updateEmptyState() {
+        if (layoutEmptyState == null || rvProducts == null) return;
+        if (filteredProducts == null) {
+            filteredProducts = new ArrayList<>();
+        }
+        
         if (filteredProducts.isEmpty()) {
             layoutEmptyState.setVisibility(View.VISIBLE);
             rvProducts.setVisibility(View.GONE);
@@ -212,28 +331,39 @@ public class ShopFragment extends Fragment implements ProductCardAdapter.OnProdu
     }
 
     private void showLoading(boolean show) {
+        if (progressBar == null || rvProducts == null) return;
         progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
         rvProducts.setVisibility(show ? View.GONE : View.VISIBLE);
     }
 
     public void updateCartBadge() {
-        String userEmail = sessionManager.getEmail();
-        if (userEmail != null && !userEmail.isEmpty()) {
-            cartItemCount = databaseHelper.getCartItemCount(userEmail);
-        } else {
-            cartItemCount = 0;
-        }
+        if (sessionManager == null || databaseHelper == null || tvCartBadge == null) return;
         
-        if (cartItemCount > 0) {
-            tvCartBadge.setText(String.valueOf(cartItemCount));
-            tvCartBadge.setVisibility(View.VISIBLE);
-        } else {
-            tvCartBadge.setVisibility(View.GONE);
+        try {
+            String userEmail = sessionManager.getEmail();
+            if (userEmail != null && !userEmail.isEmpty()) {
+                cartItemCount = databaseHelper.getCartItemCount(userEmail);
+            } else {
+                cartItemCount = 0;
+            }
+            
+            if (cartItemCount > 0) {
+                tvCartBadge.setText(String.valueOf(cartItemCount));
+                tvCartBadge.setVisibility(View.VISIBLE);
+            } else {
+                tvCartBadge.setVisibility(View.GONE);
+            }
+        } catch (Exception e) {
+            android.util.Log.e("ShopFragment", "Error updating cart badge", e);
+            if (tvCartBadge != null) {
+                tvCartBadge.setVisibility(View.GONE);
+            }
         }
     }
 
     @Override
     public void onProductClick(Product product) {
+        if (getContext() == null || product == null) return;
         Intent intent = new Intent(getContext(), ProductDetailActivity.class);
         intent.putExtra("product", product);
         intent.putExtra("productId", product.getId());
@@ -278,15 +408,18 @@ public class ShopFragment extends Fragment implements ProductCardAdapter.OnProdu
 
     private void showCartAnimation() {
         // Simple cart animation - could be enhanced with more sophisticated animations
+        if (fabCart == null) return;
         fabCart.animate()
             .scaleX(1.2f)
             .scaleY(1.2f)
             .setDuration(150)
             .withEndAction(() -> {
-                fabCart.animate()
-                    .scaleX(1.0f)
-                    .scaleY(1.0f)
-                    .setDuration(150);
+                if (fabCart != null) {
+                    fabCart.animate()
+                        .scaleX(1.0f)
+                        .scaleY(1.0f)
+                        .setDuration(150);
+                }
             });
     }
 
@@ -302,15 +435,37 @@ public class ShopFragment extends Fragment implements ProductCardAdapter.OnProdu
         
         // Only update UI if views are initialized
         if (chipAll != null && chipElectronics != null && chipClothing != null && chipHome != null) {
-            // Update chip selection
-            chipAll.setChecked(categoryId == -1);
-            chipElectronics.setChecked(categoryId == 1); // Electronics
-            chipClothing.setChecked(categoryId == 3); // Sportswear (was Clothing)
-            chipHome.setChecked(categoryId == 6); // Home
+            // Temporarily disable listeners to avoid recursive calls
+            chipAll.setOnCheckedChangeListener(null);
+            chipElectronics.setOnCheckedChangeListener(null);
+            chipClothing.setOnCheckedChangeListener(null);
+            chipHome.setOnCheckedChangeListener(null);
+            
+            // Uncheck all chips first
+            chipAll.setChecked(false);
+            chipElectronics.setChecked(false);
+            chipClothing.setChecked(false);
+            chipHome.setChecked(false);
+            
+            // Update chip selection based on category ID
+            if (categoryId == -1) {
+                chipAll.setChecked(true);
+            } else if (categoryId == 1) {
+                chipElectronics.setChecked(true); // Electronics
+            } else if (categoryId == 3) {
+                chipClothing.setChecked(true); // Sportswear
+            } else if (categoryId == 6) {
+                chipHome.setChecked(true); // Home
+            }
+            // If categoryId doesn't match any chip, no chip will be selected
+            // but the filter will still work via currentCategoryFilter
+            
+            // Re-enable listeners
+            setupFilters();
         }
         
-        // Always filter products if we have data
-        if (allProducts != null) {
+        // Always filter products if we have data, or wait for products to load
+        if (allProducts != null && productAdapter != null) {
             filterProducts();
         }
     }
@@ -320,22 +475,46 @@ public class ShopFragment extends Fragment implements ProductCardAdapter.OnProdu
         if (etSearch != null) {
             etSearch.setText(query);
         }
-        filterProducts();
+        if (allProducts != null && productAdapter != null) {
+            filterProducts();
+        }
     }
 
     private void applyPendingCategoryFilter() {
         // Apply the category filter if it was set before views were initialized
         if (currentCategoryFilter != -1) {
             if (chipAll != null && chipElectronics != null && chipClothing != null && chipHome != null) {
-                // Update chip selection
-                chipAll.setChecked(currentCategoryFilter == -1);
-                chipElectronics.setChecked(currentCategoryFilter == 1); // Electronics
-                chipClothing.setChecked(currentCategoryFilter == 3); // Sportswear (was Clothing)
-                chipHome.setChecked(currentCategoryFilter == 6); // Home
+                // Temporarily disable listeners to avoid recursive calls
+                chipAll.setOnCheckedChangeListener(null);
+                chipElectronics.setOnCheckedChangeListener(null);
+                chipClothing.setOnCheckedChangeListener(null);
+                chipHome.setOnCheckedChangeListener(null);
+                
+                // Uncheck all chips first
+                chipAll.setChecked(false);
+                chipElectronics.setChecked(false);
+                chipClothing.setChecked(false);
+                chipHome.setChecked(false);
+                
+                // Update chip selection based on category ID
+                if (currentCategoryFilter == -1) {
+                    chipAll.setChecked(true);
+                } else if (currentCategoryFilter == 1) {
+                    chipElectronics.setChecked(true); // Electronics
+                } else if (currentCategoryFilter == 3) {
+                    chipClothing.setChecked(true); // Sportswear
+                } else if (currentCategoryFilter == 6) {
+                    chipHome.setChecked(true); // Home
+                }
+                // If categoryId doesn't match any chip, no chip will be selected
+                // but the filter will still work via currentCategoryFilter
+                
+                // Re-enable listeners
+                setupFilters();
             }
             
             // Filter products
-            if (allProducts != null) {
+            if (allProducts != null && productAdapter != null) {
                 filterProducts();
             }
         }
@@ -351,6 +530,33 @@ public class ShopFragment extends Fragment implements ProductCardAdapter.OnProdu
             this.spanCount = spanCount;
             this.spacing = spacing;
             this.includeEdge = includeEdge;
+        }
+
+        @Override
+        public void getItemOffsets(android.graphics.Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
+            int position = parent.getChildAdapterPosition(view); // item position
+            if (position == RecyclerView.NO_POSITION) {
+                return;
+            }
+            
+            int column = position % spanCount; // item column
+            float spacingPx = spacing * view.getResources().getDisplayMetrics().density; // Convert dp to px
+
+            if (includeEdge) {
+                outRect.left = (int) (spacingPx - column * spacingPx / spanCount);
+                outRect.right = (int) ((column + 1) * spacingPx / spanCount);
+
+                if (position < spanCount) { // top edge
+                    outRect.top = (int) spacingPx;
+                }
+                outRect.bottom = (int) spacingPx; // item bottom
+            } else {
+                outRect.left = (int) (column * spacingPx / spanCount);
+                outRect.right = (int) (spacingPx - (column + 1) * spacingPx / spanCount);
+                if (position >= spanCount) {
+                    outRect.top = (int) spacingPx; // item top
+                }
+            }
         }
     }
 }

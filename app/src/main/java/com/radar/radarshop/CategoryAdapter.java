@@ -43,7 +43,6 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         Category category = categories.get(position);
         holder.bind(category, databaseHelper, listener);
         
-        // Add staggered entrance animation
         holder.itemView.setAlpha(0f);
         holder.itemView.setTranslationY(30f);
         holder.itemView.animate()

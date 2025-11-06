@@ -269,10 +269,19 @@ public class ProductCardAdapter extends RecyclerView.Adapter<ProductCardAdapter.
         }
 
         private void checkCartStatus(Product product) {
-            String userEmail = sessionManager.getEmail();
-            if (userEmail != null && !userEmail.isEmpty()) {
-                cartQuantity = databaseHelper.getCartQuantity(userEmail, product.getId());
-                isInCart = cartQuantity > 0;
+            try {
+                String userEmail = sessionManager.getEmail();
+                if (userEmail != null && !userEmail.isEmpty() && databaseHelper != null) {
+                    cartQuantity = databaseHelper.getCartQuantity(userEmail, product.getId());
+                    isInCart = cartQuantity > 0;
+                } else {
+                    cartQuantity = 0;
+                    isInCart = false;
+                }
+            } catch (Exception e) {
+                android.util.Log.e("ProductCardAdapter", "Error checking cart status", e);
+                cartQuantity = 0;
+                isInCart = false;
             }
         }
 
