@@ -10,6 +10,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -24,6 +25,7 @@ public class OrdersActivity extends AppCompatActivity implements OrderAdapter.On
     private LinearLayout layoutEmptyState;
     private TextView tvOrdersTitle;
     private BottomNavigationView bottomNavigationView;
+    private View fragmentContainer;
     
     private OrderAdapter orderAdapter;
     private DatabaseHelper databaseHelper;
@@ -50,6 +52,7 @@ public class OrdersActivity extends AppCompatActivity implements OrderAdapter.On
         layoutEmptyState = findViewById(R.id.layoutEmptyState);
         tvOrdersTitle = findViewById(R.id.tvOrdersTitle);
         bottomNavigationView = findViewById(R.id.bottomNav);
+        fragmentContainer = findViewById(R.id.fragmentContainer);
     }
     
     private void initializeDatabase() {
@@ -58,7 +61,7 @@ public class OrdersActivity extends AppCompatActivity implements OrderAdapter.On
     }
     
     private void setupRecyclerView() {
-        orderAdapter = new OrderAdapter(orders, this);
+        orderAdapter = new OrderAdapter(orders, this, databaseHelper, sessionManager);
         recyclerViewOrders.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewOrders.setAdapter(orderAdapter);
     }
@@ -236,6 +239,42 @@ public class OrdersActivity extends AppCompatActivity implements OrderAdapter.On
     }
     
     @Override
+    public void onWriteReview(DatabaseHelper.Order order) {
+        // Show WriteReviewFragment for reviewing products from this order
+        showWriteReviewFragment(order);
+    }
+    
+    private void showWriteReviewFragment(DatabaseHelper.Order order) {
+        // Hide orders list and show fragment container
+        recyclerViewOrders.setVisibility(View.GONE);
+        layoutEmptyState.setVisibility(View.GONE);
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setVisibility(View.GONE);
+        }
+        fragmentContainer.setVisibility(View.VISIBLE);
+        
+        // Create and show the fragment
+        WriteReviewFragment fragment = WriteReviewFragment.newInstance(order.id, order.orderNumber);
+        
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction()
+                .replace(R.id.fragmentContainer, fragment)
+                .addToBackStack(null)
+                .commit();
+    }
+    
+    public void hideWriteReviewFragment() {
+        // Show orders list and hide fragment container
+        fragmentContainer.setVisibility(View.GONE);
+        recyclerViewOrders.setVisibility(View.VISIBLE);
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setVisibility(View.VISIBLE);
+        }
+        // Reload orders to update review status
+        loadOrders();
+    }
+    
+    @Override
     public void onTrackOrder(DatabaseHelper.Order order) {
         // Show order details dialog with tracking info
         showOrderDetailsDialog(order);
@@ -248,6 +287,11 @@ public class OrdersActivity extends AppCompatActivity implements OrderAdapter.On
             @Override
             public void onBuyAgain(DatabaseHelper.Order order) {
                 OrdersActivity.this.onBuyAgain(order);
+            }
+            
+            @Override
+            public void onWriteReview(DatabaseHelper.Order order) {
+                OrdersActivity.this.onWriteReview(order);
             }
             
             @Override
@@ -275,6 +319,19 @@ public class OrdersActivity extends AppCompatActivity implements OrderAdapter.On
         dialog.setCanceledOnTouchOutside(true);
         
         dialog.show();
+    }
+    
+    @Override
+    public void onBackPressed() {
+        // If fragment is visible, hide it instead of finishing activity
+        if (fragmentContainer != null && fragmentContainer.getVisibility() == View.VISIBLE) {
+            hideWriteReviewFragment();
+            if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+                getSupportFragmentManager().popBackStack();
+            }
+        } else {
+            super.onBackPressed();
+        }
     }
     
     @Override

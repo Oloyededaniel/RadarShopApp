@@ -28,11 +28,15 @@
 
                 <!-- Search Bar -->
                 <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/textInputLayoutSearch"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
                     app:boxStrokeColor="#E0E0E0"
                     app:hintTextColor="#757575"
+                    app:endIconMode="custom"
+                    app:endIconDrawable="@drawable/ic_mic"
+                    app:endIconContentDescription="Voice Search"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                     <com.google.android.material.textfield.TextInputEditText

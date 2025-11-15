@@ -16,7 +16,13 @@ import android.widget.ImageView;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.speech.RecognizerIntent;
+import android.content.pm.PackageManager;
+import android.Manifest;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
@@ -36,6 +42,7 @@ public class HomeActivity extends AppCompatActivity {
     private RecyclerView recyclerViewCategories;
     private CategoryAdapter categoryAdapter;
     private ImageView searchIcon;
+    private ImageView micIcon;
     
     // Fragment management
     private Fragment currentFragment;
@@ -45,6 +52,10 @@ public class HomeActivity extends AppCompatActivity {
     private Handler searchHandler;
     private Runnable searchRunnable;
     private static final int SEARCH_DELAY = 500; // 500ms delay for debouncing
+    
+    // Speech recognition
+    private static final int SPEECH_REQUEST_CODE = 100;
+    private static final int PERMISSION_REQUEST_CODE = 200;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -63,6 +74,7 @@ public class HomeActivity extends AppCompatActivity {
         userName = findViewById(R.id.userName);
         recyclerViewCategories = findViewById(R.id.recyclerViewCategories);
         searchIcon = findViewById(R.id.searchIcon);
+        micIcon = findViewById(R.id.micIcon);
         
         // Set up personalized welcome message
         setupUserWelcome();
@@ -109,6 +121,11 @@ public class HomeActivity extends AppCompatActivity {
                     etSearch.requestFocus();
                 }
             });
+        }
+
+        // Microphone icon click -> start speech recognition
+        if (micIcon != null) {
+            micIcon.setOnClickListener(v -> startSpeechRecognition());
         }
 
         // "See All" -> open products
@@ -502,6 +519,76 @@ public class HomeActivity extends AppCompatActivity {
     public void startShopping(View view) {
         if (cartFragment != null) {
             cartFragment.startShopping(view);
+        }
+    }
+
+    private void startSpeechRecognition() {
+        // Check if speech recognition is available
+        if (!isSpeechRecognitionAvailable()) {
+            Toast.makeText(this, "Speech recognition is not available on this device", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Check for RECORD_AUDIO permission
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) 
+                != PackageManager.PERMISSION_GRANTED) {
+            // Request permission
+            ActivityCompat.requestPermissions(this, 
+                    new String[]{Manifest.permission.RECORD_AUDIO}, 
+                    PERMISSION_REQUEST_CODE);
+            return;
+        }
+
+        // Start speech recognition intent
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak to search for products");
+        intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
+
+        try {
+            startActivityForResult(intent, SPEECH_REQUEST_CODE);
+        } catch (Exception e) {
+            Toast.makeText(this, "Error starting speech recognition: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private boolean isSpeechRecognitionAvailable() {
+        PackageManager pm = getPackageManager();
+        return pm.queryIntentActivities(
+                new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH), 0).size() > 0;
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == SPEECH_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
+            java.util.ArrayList<String> results = data.getStringArrayListExtra(
+                    RecognizerIntent.EXTRA_RESULTS);
+            if (results != null && !results.isEmpty()) {
+                String spokenText = results.get(0);
+                // Set the spoken text in the search field
+                etSearch.setText(spokenText);
+                // Trigger search immediately
+                if (searchRunnable != null) {
+                    searchHandler.removeCallbacks(searchRunnable);
+                }
+                performSearch(spokenText);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted, start speech recognition
+                startSpeechRecognition();
+            } else {
+                Toast.makeText(this, "Microphone permission is required for voice search", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 }

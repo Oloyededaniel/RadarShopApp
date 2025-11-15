@@ -42,6 +42,7 @@ public class OrderDetailsDialog extends Dialog {
     
     public interface OnOrderActionListener {
         void onBuyAgain(DatabaseHelper.Order order);
+        void onWriteReview(DatabaseHelper.Order order);
         void onTrackOrder(DatabaseHelper.Order order);
         void onViewDetails(DatabaseHelper.Order order);
     }
@@ -123,12 +124,29 @@ public class OrderDetailsDialog extends Dialog {
         
         switch (status) {
             case "delivered":
-                btnAction.setText("Buy Again");
-                btnAction.setOnClickListener(v -> {
-                    // Add items to cart first
-                    addItemsToCart();
-                    showCartMessage();
-                });
+                // Check if order has been reviewed
+                String userEmail = sessionManager.getEmail();
+                if (userEmail == null || userEmail.isEmpty()) {
+                    userEmail = "demo@example.com";
+                }
+                boolean isReviewed = databaseHelper.hasOrderBeenReviewed(userEmail, order.id);
+                
+                if (isReviewed) {
+                    btnAction.setText("Review Submitted");
+                    btnAction.setEnabled(false);
+                    btnAction.setAlpha(0.6f);
+                    btnAction.setOnClickListener(null);
+                } else {
+                    btnAction.setText("Write Review");
+                    btnAction.setEnabled(true);
+                    btnAction.setAlpha(1.0f);
+                    btnAction.setOnClickListener(v -> {
+                        if (listener != null) {
+                            listener.onWriteReview(order);
+                        }
+                        dismiss();
+                    });
+                }
                 break;
             case "shipped":
                 btnAction.setText("Track Order");

@@ -11,13 +11,17 @@ import android.widget.Toast;
 
 import java.util.List;
 
-/** Adapter for ListView in WishlistActivity. */
 public class WishlistAdapter extends ArrayAdapter<Product> {
 
     private final LayoutInflater inflater;
     private final DatabaseHelper dbHelper;
     private final String userEmail;
     private final List<Product> data;
+    private OnWishlistChangedListener listener;
+
+    public interface OnWishlistChangedListener {
+        void onWishlistChanged(int newCount);
+    }
 
     public WishlistAdapter(Context context,
                            List<Product> items,
@@ -28,6 +32,10 @@ public class WishlistAdapter extends ArrayAdapter<Product> {
         this.dbHelper = dbHelper;
         this.userEmail = userEmail;
         this.data = items;
+    }
+
+    public void setOnWishlistChangedListener(OnWishlistChangedListener listener) {
+        this.listener = listener;
     }
 
     @Override
@@ -52,6 +60,10 @@ public class WishlistAdapter extends ArrayAdapter<Product> {
                     data.remove(p);
                     notifyDataSetChanged();
                     Toast.makeText(getContext(), "Removed from wishlist", Toast.LENGTH_SHORT).show();
+                    // Notify listener about the change
+                    if (listener != null) {
+                        listener.onWishlistChanged(data.size());
+                    }
                 } else {
                     Toast.makeText(getContext(), "Failed to remove", Toast.LENGTH_SHORT).show();
                 }

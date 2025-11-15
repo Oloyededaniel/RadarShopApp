@@ -10,6 +10,11 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.speech.RecognizerIntent;
+import android.content.pm.PackageManager;
+import android.Manifest;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -21,6 +26,7 @@ import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +38,7 @@ public class ShopFragment extends Fragment implements ProductCardAdapter.OnProdu
     private DatabaseHelper databaseHelper;
     private SessionManager sessionManager;
     private TextInputEditText etSearch;
+    private TextInputLayout textInputLayout;
     private ChipGroup chipGroupFilters;
     private Chip chipAll, chipElectronics, chipClothing, chipHome;
     private ProgressBar progressBar;
@@ -44,6 +51,10 @@ public class ShopFragment extends Fragment implements ProductCardAdapter.OnProdu
     private String currentSearchQuery = "";
     private int currentCategoryFilter = -1; // -1 means all categories
     private int cartItemCount = 0;
+    
+    // Speech recognition
+    private static final int SPEECH_REQUEST_CODE = 100;
+    private static final int PERMISSION_REQUEST_CODE = 200;
 
     @Nullable
     @Override
@@ -121,6 +132,7 @@ public class ShopFragment extends Fragment implements ProductCardAdapter.OnProdu
     private void initializeViews(View view) {
         rvProducts = view.findViewById(R.id.rvProducts);
         etSearch = view.findViewById(R.id.etSearch);
+        textInputLayout = view.findViewById(R.id.textInputLayoutSearch);
         chipGroupFilters = view.findViewById(R.id.chipGroupFilters);
         chipAll = view.findViewById(R.id.chipAll);
         chipElectronics = view.findViewById(R.id.chipElectronics);
@@ -198,6 +210,11 @@ public class ShopFragment extends Fragment implements ProductCardAdapter.OnProdu
                 }
             }
         });
+        
+        // Set up speech recognition for the end icon
+        if (textInputLayout != null) {
+            textInputLayout.setEndIconOnClickListener(v -> startSpeechRecognition());
+        }
     }
 
     private void setupFilters() {
@@ -555,6 +572,82 @@ public class ShopFragment extends Fragment implements ProductCardAdapter.OnProdu
                 outRect.right = (int) (spacingPx - (column + 1) * spacingPx / spanCount);
                 if (position >= spanCount) {
                     outRect.top = (int) spacingPx; // item top
+                }
+            }
+        }
+    }
+
+    private void startSpeechRecognition() {
+        // Check if speech recognition is available
+        if (!isSpeechRecognitionAvailable()) {
+            Toast.makeText(getContext(), "Speech recognition is not available on this device", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Check for RECORD_AUDIO permission
+        if (getContext() == null) return;
+        
+        if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.RECORD_AUDIO) 
+                != PackageManager.PERMISSION_GRANTED) {
+            // Request permission
+            requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, 
+                    PERMISSION_REQUEST_CODE);
+            return;
+        }
+
+        // Start speech recognition intent
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak to search for products");
+        intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
+
+        try {
+            startActivityForResult(intent, SPEECH_REQUEST_CODE);
+        } catch (Exception e) {
+            Toast.makeText(getContext(), "Error starting speech recognition: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private boolean isSpeechRecognitionAvailable() {
+        if (getContext() == null) return false;
+        PackageManager pm = getContext().getPackageManager();
+        return pm.queryIntentActivities(
+                new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH), 0).size() > 0;
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == SPEECH_REQUEST_CODE && resultCode == android.app.Activity.RESULT_OK && data != null) {
+            java.util.ArrayList<String> results = data.getStringArrayListExtra(
+                    RecognizerIntent.EXTRA_RESULTS);
+            if (results != null && !results.isEmpty()) {
+                String spokenText = results.get(0);
+                // Set the spoken text in the search field
+                if (etSearch != null) {
+                    etSearch.setText(spokenText);
+                    currentSearchQuery = spokenText;
+                    // Trigger search immediately
+                    if (allProducts != null && productAdapter != null) {
+                        filterProducts();
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted, start speech recognition
+                startSpeechRecognition();
+            } else {
+                if (getContext() != null) {
+                    Toast.makeText(getContext(), "Microphone permission is required for voice search", Toast.LENGTH_SHORT).show();
                 }
             }
         }

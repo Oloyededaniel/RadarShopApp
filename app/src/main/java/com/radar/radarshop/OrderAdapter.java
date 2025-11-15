@@ -20,18 +20,24 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
     
     private List<DatabaseHelper.Order> orders;
     private OnOrderActionListener listener;
+    private DatabaseHelper databaseHelper;
+    private SessionManager sessionManager;
     private DecimalFormat currencyFormat = new DecimalFormat("$#,##0.00");
     
     public interface OnOrderActionListener {
         void onViewDetails(DatabaseHelper.Order order);
         void onBuyAgain(DatabaseHelper.Order order);
+        void onWriteReview(DatabaseHelper.Order order);
         void onTrackOrder(DatabaseHelper.Order order);
         void onOrderCardClicked(DatabaseHelper.Order order);
     }
     
-    public OrderAdapter(List<DatabaseHelper.Order> orders, OnOrderActionListener listener) {
+    public OrderAdapter(List<DatabaseHelper.Order> orders, OnOrderActionListener listener, 
+                       DatabaseHelper databaseHelper, SessionManager sessionManager) {
         this.orders = orders;
         this.listener = listener;
+        this.databaseHelper = databaseHelper;
+        this.sessionManager = sessionManager;
     }
     
     @NonNull
@@ -98,7 +104,7 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             tvTrackingNumber.setText(order.trackingNumber);
             
             // Set status-specific UI
-            setStatusUI(order.status);
+            setStatusUI(order.status, order);
             
             // Set up card click listener
             itemView.setOnClickListener(v -> {
@@ -115,9 +121,18 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             });
             
             btnAction.setOnClickListener(v -> {
-                if (listener != null) {
+                if (listener != null && btnAction.isEnabled()) {
                     if ("delivered".equals(order.status)) {
-                        listener.onBuyAgain(order);
+                        // Check if already reviewed before allowing review
+                        String userEmail = sessionManager != null ? sessionManager.getEmail() : null;
+                        if (userEmail == null || userEmail.isEmpty()) {
+                            userEmail = "demo@example.com";
+                        }
+                        if (databaseHelper != null && databaseHelper.hasOrderBeenReviewed(userEmail, order.id)) {
+                            // Already reviewed, do nothing
+                            return;
+                        }
+                        listener.onWriteReview(order);
                     } else if ("shipped".equals(order.status)) {
                         listener.onTrackOrder(order);
                     } else {
@@ -127,14 +142,34 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             });
         }
         
-        private void setStatusUI(String status) {
+        private void setStatusUI(String status, DatabaseHelper.Order order) {
             switch (status.toLowerCase()) {
                 case "delivered":
                     ivStatusIcon.setImageResource(R.drawable.ic_check_circle);
                     tvStatusBadge.setText("Delivered");
                     tvStatusBadge.setBackgroundResource(R.drawable.status_delivered_background);
                     btnAction.setVisibility(View.VISIBLE);
-                    btnAction.setText("Buy Again");
+                    
+                    // Check if order has been reviewed
+                    boolean isReviewed = false;
+                    if (databaseHelper != null && sessionManager != null) {
+                        String userEmail = sessionManager.getEmail();
+                        if (userEmail == null || userEmail.isEmpty()) {
+                            userEmail = "demo@example.com";
+                        }
+                        isReviewed = databaseHelper.hasOrderBeenReviewed(userEmail, order.id);
+                    }
+                    
+                    if (isReviewed) {
+                        btnAction.setText("Review Submitted");
+                        btnAction.setEnabled(false);
+                        btnAction.setAlpha(0.6f);
+                        btnAction.setBackgroundResource(R.drawable.button_review_background);
+                    } else {
+                        btnAction.setText("Write Review");
+                        btnAction.setEnabled(true);
+                        btnAction.setAlpha(1.0f);
+                    }
                     break;
                 case "shipped":
                     ivStatusIcon.setImageResource(R.drawable.ic_local_shipping);

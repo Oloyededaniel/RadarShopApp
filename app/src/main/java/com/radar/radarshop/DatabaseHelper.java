@@ -1236,6 +1236,65 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         return out;
     }
+    
+    /**
+     * Check if a user has reviewed all products in an order
+     * @param userEmail The user's email
+     * @param orderId The order ID
+     * @return true if all products in the order have been reviewed by the user
+     */
+    public boolean hasOrderBeenReviewed(String userEmail, int orderId) {
+        String normEmail = normalizeEmail(userEmail);
+        if (normEmail.isEmpty()) {
+            return false;
+        }
+        
+        // Get all order items
+        List<OrderItem> orderItems = getOrderItems(orderId);
+        if (orderItems == null || orderItems.isEmpty()) {
+            return false;
+        }
+        
+        // Check if user has reviewed all products in the order
+        for (OrderItem item : orderItems) {
+            boolean hasReview = false;
+            String sql = "SELECT COUNT(*) FROM " + TABLE_REVIEWS + 
+                        " WHERE " + COL_REVIEW_EMAIL + "=? AND " + COL_REVIEW_PRODUCT_ID + "=?";
+            try (Cursor c = getReadableDatabase().rawQuery(sql, new String[]{normEmail, String.valueOf(item.productId)})) {
+                if (c.moveToFirst() && c.getInt(0) > 0) {
+                    hasReview = true;
+                }
+            }
+            
+            if (!hasReview) {
+                return false; // At least one product hasn't been reviewed
+            }
+        }
+        
+        return true; // All products have been reviewed
+    }
+    
+    /**
+     * Check if a user has reviewed a specific product
+     * @param userEmail The user's email
+     * @param productId The product ID
+     * @return true if the user has reviewed this product
+     */
+    public boolean hasUserReviewedProduct(String userEmail, int productId) {
+        String normEmail = normalizeEmail(userEmail);
+        if (normEmail.isEmpty()) {
+            return false;
+        }
+        
+        String sql = "SELECT COUNT(*) FROM " + TABLE_REVIEWS + 
+                    " WHERE " + COL_REVIEW_EMAIL + "=? AND " + COL_REVIEW_PRODUCT_ID + "=?";
+        try (Cursor c = getReadableDatabase().rawQuery(sql, new String[]{normEmail, String.valueOf(productId)})) {
+            if (c.moveToFirst()) {
+                return c.getInt(0) > 0;
+            }
+        }
+        return false;
+    }
 
     /* HELPERS */
 

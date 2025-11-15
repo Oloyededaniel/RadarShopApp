@@ -119,6 +119,19 @@
                         android:imeOptions="actionSearch"
                         android:inputType="text" />
 
+                    <!-- Speech to Text Button -->
+                    <ImageView
+                        android:id="@+id/micIcon"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_mic"
+                        android:contentDescription="Voice Search"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:padding="4dp"
+                        android:layout_marginEnd="8dp"
+                        app:tint="@color/text_secondary" />
+
                     <!-- Quick Filter Button -->
                     <ImageView
                         android:layout_width="24dp"
