@@ -28,18 +28,15 @@
             </intent-filter>
         </activity>
 
-        <!-- Home Activity -->
         <activity
             android:name=".HomeActivity"
             android:exported="false" />
 
         <activity android:name=".ShopActivity" android:exported="false"/>
-
         <activity android:name=".ProductDetailActivity" android:exported="false"/>
         <activity android:name=".WishlistActivity" android:exported="false"/>
         <activity android:name=".ReviewsActivity" android:exported="false"/>
         <activity android:name=".AuthActivity" android:exported="false"/>
-
         <activity android:name=".CartActivity" android:exported="false"/>
         <activity android:name=".CheckoutActivity" android:exported="false"/>
         <activity android:name=".OrdersActivity" android:exported="false"/>
