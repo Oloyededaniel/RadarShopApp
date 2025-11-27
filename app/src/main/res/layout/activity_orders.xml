@@ -13,7 +13,7 @@
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:padding="16dp"
-        android:background="@color/primary_dark">
+        android:background="@drawable/stylish_header_background">
 
         <TextView
             android:id="@+id/tvOrdersTitle"
