@@ -34,7 +34,8 @@
                     android:id="@+id/btnBack"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
-                    android:background="#00FFFFFF"
+                    android:padding="2dp"
+                    android:background="@drawable/circle_button_background"
                     android:contentDescription="Back"
                     android:scaleType="centerInside"
                     android:src="@drawable/back_arrow" />
