@@ -39,7 +39,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/ic_shopping_cart"
-                android:tint="@color/primary_orange"
+                android:tint="@color/orange"
                 android:layout_marginEnd="12dp" />
 
             <TextView
@@ -57,7 +57,7 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:visibility="gone"
-                android:indeterminateTint="@color/primary_orange" />
+                android:indeterminateTint="@color/orange" />
 
         </LinearLayout>
 
@@ -119,7 +119,7 @@
                         android:layout_width="20dp"
                         android:layout_height="20dp"
                         android:src="@drawable/ic_receipt"
-                        android:tint="@color/primary_orange"
+                        android:tint="@color/orange"
                         android:layout_marginEnd="8dp" />
 
                     <TextView
@@ -255,7 +255,7 @@
                             android:text="$0.00"
                             android:textSize="18sp"
                             android:textStyle="bold"
-                            android:textColor="@color/primary_orange" />
+                            android:textColor="@color/orange" />
 
                     </LinearLayout>
 
@@ -293,7 +293,7 @@
                         android:layout_width="20dp"
                         android:layout_height="20dp"
                         android:src="@drawable/ic_location"
-                        android:tint="@color/primary_orange"
+                        android:tint="@color/orange"
                         android:layout_marginEnd="8dp" />
 
                     <TextView
@@ -313,8 +313,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
-                    app:boxStrokeColor="@color/primary_orange"
-                    app:hintTextColor="@color/primary_orange">
+                    app:boxStrokeColor="@color/orange"
+                    app:hintTextColor="@color/orange">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etFullName"
@@ -331,8 +331,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
-                    app:boxStrokeColor="@color/primary_orange"
-                    app:hintTextColor="@color/primary_orange">
+                    app:boxStrokeColor="@color/orange"
+                    app:hintTextColor="@color/orange">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etAddress"
@@ -355,8 +355,8 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="2"
                         android:layout_marginEnd="8dp"
-                        app:boxStrokeColor="@color/primary_orange"
-                        app:hintTextColor="@color/primary_orange">
+                        app:boxStrokeColor="@color/orange"
+                        app:hintTextColor="@color/orange">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etCity"
@@ -374,8 +374,8 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="8dp"
-                        app:boxStrokeColor="@color/primary_orange"
-                        app:hintTextColor="@color/primary_orange">
+                        app:boxStrokeColor="@color/orange"
+                        app:hintTextColor="@color/orange">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etState"
@@ -402,8 +402,8 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginEnd="8dp"
-                        app:boxStrokeColor="@color/primary_orange"
-                        app:hintTextColor="@color/primary_orange">
+                        app:boxStrokeColor="@color/orange"
+                        app:hintTextColor="@color/orange">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etZipCode"
@@ -422,8 +422,8 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="8dp"
-                        app:boxStrokeColor="@color/primary_orange"
-                        app:hintTextColor="@color/primary_orange">
+                        app:boxStrokeColor="@color/orange"
+                        app:hintTextColor="@color/orange">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etPhone"
@@ -460,7 +460,7 @@
                         android:text="Standard Shipping (5-7 days) - $5.99"
                         android:textSize="14sp"
                         android:textColor="@color/text_primary"
-                        android:buttonTint="@color/primary_orange"
+                        android:buttonTint="@color/orange"
                         android:layout_marginBottom="8dp" />
 
                     <RadioButton
@@ -470,7 +470,7 @@
                         android:text="Express Shipping (2-3 days) - $12.99"
                         android:textSize="14sp"
                         android:textColor="@color/text_primary"
-                        android:buttonTint="@color/primary_orange"
+                        android:buttonTint="@color/orange"
                         android:layout_marginBottom="8dp" />
 
                     <RadioButton
@@ -480,7 +480,7 @@
                         android:text="Overnight Shipping (1 day) - $24.99"
                         android:textSize="14sp"
                         android:textColor="@color/text_primary"
-                        android:buttonTint="@color/primary_orange" />
+                        android:buttonTint="@color/orange" />
 
                 </RadioGroup>
 
@@ -516,7 +516,7 @@
                         android:layout_width="20dp"
                         android:layout_height="20dp"
                         android:src="@drawable/ic_credit_card"
-                        android:tint="@color/primary_orange"
+                        android:tint="@color/orange"
                         android:layout_marginEnd="8dp" />
 
                     <TextView
@@ -544,7 +544,7 @@
                         android:text="Credit Card"
                         android:textSize="14sp"
                         android:textColor="@color/text_primary"
-                        android:buttonTint="@color/primary_orange"
+                        android:buttonTint="@color/orange"
                         android:layout_marginBottom="8dp" />
 
                     <RadioButton
@@ -554,7 +554,7 @@
                         android:text="Debit Card"
                         android:textSize="14sp"
                         android:textColor="@color/text_primary"
-                        android:buttonTint="@color/primary_orange" />
+                        android:buttonTint="@color/orange" />
 
                 </RadioGroup>
 
@@ -564,8 +564,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
-                    app:boxStrokeColor="@color/primary_orange"
-                    app:hintTextColor="@color/primary_orange">
+                    app:boxStrokeColor="@color/orange"
+                    app:hintTextColor="@color/orange">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etCardNumber"
@@ -588,8 +588,8 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginEnd="8dp"
-                        app:boxStrokeColor="@color/primary_orange"
-                        app:hintTextColor="@color/primary_orange">
+                        app:boxStrokeColor="@color/orange"
+                        app:hintTextColor="@color/orange">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etExpiryDate"
@@ -607,8 +607,8 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="8dp"
-                        app:boxStrokeColor="@color/primary_orange"
-                        app:hintTextColor="@color/primary_orange">
+                        app:boxStrokeColor="@color/orange"
+                        app:hintTextColor="@color/orange">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etCVV"
@@ -627,8 +627,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    app:boxStrokeColor="@color/primary_orange"
-                    app:hintTextColor="@color/primary_orange">
+                    app:boxStrokeColor="@color/orange"
+                    app:hintTextColor="@color/orange">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etCardholderName"
@@ -653,7 +653,7 @@
             android:textSize="16sp"
             android:textStyle="bold"
             android:textColor="@color/white"
-            android:backgroundTint="@color/primary_orange"
+            android:backgroundTint="@color/orange"
             app:cornerRadius="28dp"
             android:elevation="8dp"
             android:paddingStart="24dp"
