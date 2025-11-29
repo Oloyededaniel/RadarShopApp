@@ -175,7 +175,18 @@ public class OrderDetailsDialog extends Dialog {
         }
         
         for (DatabaseHelper.OrderItem item : orderItems) {
-            databaseHelper.addToCart(userEmail, item.productId, item.quantity);
+            // Check if item is in wishlist and remove it
+            if (databaseHelper.isInWishlist(userEmail, item.productId)) {
+                databaseHelper.removeFromWishlist(userEmail, item.productId);
+            }
+            
+            // Add to cart
+            boolean success = databaseHelper.addToCart(userEmail, item.productId, item.quantity);
+            
+            // Verify the item is actually in cart
+            if (!success || !databaseHelper.isInCart(userEmail, item.productId)) {
+                android.util.Log.w("OrderDetailsDialog", "Failed to add product " + item.productId + " to cart");
+            }
         }
     }
     

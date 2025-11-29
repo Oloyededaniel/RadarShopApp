@@ -215,9 +215,26 @@ public class WishlistActivity extends AppCompatActivity implements WishlistCardA
             email = "demo@example.com";
         }
 
+        // Check if item is in wishlist and remove it
+        boolean wasInWishlist = db.isInWishlist(email, product.getId());
+        
+        // Add to cart
         boolean success = db.addToCart(email, product.getId(), 1);
+        
+        // Verify the item is actually in cart
         if (success) {
-            Toast.makeText(this, "Added to cart", Toast.LENGTH_SHORT).show();
+            boolean isActuallyInCart = db.isInCart(email, product.getId());
+            if (isActuallyInCart) {
+                // Remove from wishlist if it was there
+                if (wasInWishlist) {
+                    db.removeFromWishlist(email, product.getId());
+                }
+                Toast.makeText(this, "Added to cart", Toast.LENGTH_SHORT).show();
+                // Reload wishlist to reflect the removal
+                loadWishlist();
+            } else {
+                Toast.makeText(this, "Failed to add to cart", Toast.LENGTH_SHORT).show();
+            }
         } else {
             Toast.makeText(this, "Failed to add to cart", Toast.LENGTH_SHORT).show();
         }

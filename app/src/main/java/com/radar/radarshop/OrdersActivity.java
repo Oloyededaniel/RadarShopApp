@@ -224,8 +224,16 @@ public class OrdersActivity extends AppCompatActivity implements OrderAdapter.On
         
         boolean success = true;
         for (DatabaseHelper.OrderItem item : orderItems) {
+            // Check if item is in wishlist and remove it
+            if (databaseHelper.isInWishlist(userEmail, item.productId)) {
+                databaseHelper.removeFromWishlist(userEmail, item.productId);
+            }
+            
+            // Add to cart
             boolean added = databaseHelper.addToCart(userEmail, item.productId, item.quantity);
-            if (!added) {
+            
+            // Verify the item is actually in cart
+            if (!added || !databaseHelper.isInCart(userEmail, item.productId)) {
                 success = false;
             }
         }

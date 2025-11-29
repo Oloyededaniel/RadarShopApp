@@ -343,15 +343,37 @@ public class ProductCardAdapter extends RecyclerView.Adapter<ProductCardAdapter.
                 return;
             }
 
-            databaseHelper.addToCart(userEmail, product.getId(), 1);
-            isInCart = true;
-            cartQuantity = 1;
-            updateCartUI();
+            // Check if item is in wishlist and remove it
+            boolean wasInWishlist = databaseHelper.isInWishlist(userEmail, product.getId());
+            if (wasInWishlist) {
+                databaseHelper.removeFromWishlist(userEmail, product.getId());
+                isInWishlist = false;
+                updateWishlistIcon();
+                if (listener != null) {
+                    listener.onRemoveFromWishlist(product);
+                }
+            }
+
+            // Add to cart
+            boolean success = databaseHelper.addToCart(userEmail, product.getId(), 1);
             
-            Toast.makeText(context, "Added to cart", Toast.LENGTH_SHORT).show();
-            
-            if (listener != null) {
-                listener.onAddToCart(product, 1);
+            // Verify the item is actually in cart
+            if (success) {
+                boolean isActuallyInCart = databaseHelper.isInCart(userEmail, product.getId());
+                if (isActuallyInCart) {
+                    isInCart = true;
+                    cartQuantity = 1;
+                    updateCartUI();
+                    Toast.makeText(context, "Added to cart", Toast.LENGTH_SHORT).show();
+                    
+                    if (listener != null) {
+                        listener.onAddToCart(product, 1);
+                    }
+                } else {
+                    Toast.makeText(context, "Failed to add to cart", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Toast.makeText(context, "Failed to add to cart", Toast.LENGTH_SHORT).show();
             }
         }
 

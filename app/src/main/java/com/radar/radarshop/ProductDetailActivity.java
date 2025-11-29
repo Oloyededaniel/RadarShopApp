@@ -338,12 +338,31 @@ public class ProductDetailActivity extends AppCompatActivity {
             return;
         }
 
-        dbHelper.addToCart(userEmail, productId, 1);
-        isInCart = true;
-        cartQuantity = 1;
-        updateUI();
+        // Check if item is in wishlist and remove it
+        boolean wasInWishlist = dbHelper.isInWishlist(userEmail, productId);
+        if (wasInWishlist) {
+            dbHelper.removeFromWishlist(userEmail, productId);
+            isInWishlist = false;
+            updateWishlistIcon();
+        }
+
+        // Add to cart
+        boolean success = dbHelper.addToCart(userEmail, productId, 1);
         
-        Toast.makeText(this, "Added to cart", Toast.LENGTH_SHORT).show();
+        // Verify the item is actually in cart
+        if (success) {
+            boolean isActuallyInCart = dbHelper.isInCart(userEmail, productId);
+            if (isActuallyInCart) {
+                isInCart = true;
+                cartQuantity = 1;
+                updateUI();
+                Toast.makeText(this, "Added to cart", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Failed to add to cart", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(this, "Failed to add to cart", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void buyNow() {
@@ -358,14 +377,27 @@ public class ProductDetailActivity extends AppCompatActivity {
             return;
         }
 
+        // Check if item is in wishlist and remove it
+        boolean wasInWishlist = dbHelper.isInWishlist(userEmail, productId);
+        if (wasInWishlist) {
+            dbHelper.removeFromWishlist(userEmail, productId);
+            isInWishlist = false;
+            updateWishlistIcon();
+        }
+
         // Add to cart first
-        dbHelper.addToCart(userEmail, productId, 1);
+        boolean success = dbHelper.addToCart(userEmail, productId, 1);
         
-        // Navigate to checkout/cart
-        Intent intent = new Intent(this, CartActivity.class);
-        intent.putExtra("checkout_mode", true);
-        intent.putExtra("from_activity", "ProductDetailActivity");
-        startActivity(intent);
+        // Verify the item is actually in cart before navigating
+        if (success && dbHelper.isInCart(userEmail, productId)) {
+            // Navigate to checkout/cart
+            Intent intent = new Intent(this, CartActivity.class);
+            intent.putExtra("checkout_mode", true);
+            intent.putExtra("from_activity", "ProductDetailActivity");
+            startActivity(intent);
+        } else {
+            Toast.makeText(this, "Failed to add to cart", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void increaseQuantity() {

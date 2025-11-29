@@ -6,6 +6,8 @@ import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.InputFilter;
+import android.text.Spanned;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
@@ -80,40 +82,20 @@ public class CheckoutActivity extends AppCompatActivity implements OrderSuccessF
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Toast.makeText(this, "CheckoutActivity: onCreate started", Toast.LENGTH_SHORT).show();
-        
         setContentView(R.layout.activity_checkout);
-        Toast.makeText(this, "CheckoutActivity: setContentView completed", Toast.LENGTH_SHORT).show();
         
         // Initialize database and session
         databaseHelper = new DatabaseHelper(this);
         sessionManager = new SessionManager(this);
         
         initializeViews();
-        Toast.makeText(this, "CheckoutActivity: initializeViews completed", Toast.LENGTH_SHORT).show();
-        
         setupAnimations();
-        Toast.makeText(this, "CheckoutActivity: setupAnimations completed", Toast.LENGTH_SHORT).show();
-        
         loadCartItems();
-        Toast.makeText(this, "CheckoutActivity: loadCartItems completed", Toast.LENGTH_SHORT).show();
-        
         loadSavedUserInfo();
-        Toast.makeText(this, "CheckoutActivity: loadSavedUserInfo completed", Toast.LENGTH_SHORT).show();
-        
         setupListeners();
-        Toast.makeText(this, "CheckoutActivity: setupListeners completed", Toast.LENGTH_SHORT).show();
-        
         setupAddressAutocomplete();
-        Toast.makeText(this, "CheckoutActivity: setupAddressAutocomplete completed", Toast.LENGTH_SHORT).show();
-        
         calculateTotals();
-        Toast.makeText(this, "CheckoutActivity: calculateTotals completed", Toast.LENGTH_SHORT).show();
-        
         updateOrderSummary();
-        Toast.makeText(this, "CheckoutActivity: updateOrderSummary completed", Toast.LENGTH_SHORT).show();
-        
-        Toast.makeText(this, "CheckoutActivity: onCreate completed successfully!", Toast.LENGTH_LONG).show();
     }
     
     private void initializeViews() {
@@ -163,6 +145,9 @@ public class CheckoutActivity extends AppCompatActivity implements OrderSuccessF
         tilExpiryDate = findViewById(R.id.tilExpiryDate);
         tilCVV = findViewById(R.id.tilCVV);
         tilCardholderName = findViewById(R.id.tilCardholderName);
+        
+        // Set input filters for card fields
+        setupCardInputFilters();
         
         rgPaymentMethod = findViewById(R.id.rgPaymentMethod);
         rbCreditCard = findViewById(R.id.rbCreditCard);
@@ -232,45 +217,28 @@ public class CheckoutActivity extends AppCompatActivity implements OrderSuccessF
     }
     
     private void loadCartItems() {
-        Toast.makeText(this, "loadCartItems: Starting", Toast.LENGTH_SHORT).show();
-        
         // Get cart items from intent
         Intent intent = getIntent();
-        Toast.makeText(this, "loadCartItems: Got intent", Toast.LENGTH_SHORT).show();
         
         if (intent != null && intent.hasExtra("cart_items")) {
-            Toast.makeText(this, "loadCartItems: Intent has cart_items extra", Toast.LENGTH_SHORT).show();
             try {
                 Object serializableExtra = intent.getSerializableExtra("cart_items");
-                Toast.makeText(this, "loadCartItems: Got serializable extra", Toast.LENGTH_SHORT).show();
                 
                 if (serializableExtra instanceof List) {
-                    Toast.makeText(this, "loadCartItems: Extra is a List", Toast.LENGTH_SHORT).show();
                     @SuppressWarnings("unchecked")
                     List<CartItem> receivedItems = (List<CartItem>) serializableExtra;
                     if (receivedItems != null && !receivedItems.isEmpty()) {
-                        Toast.makeText(this, "loadCartItems: Adding " + receivedItems.size() + " items", Toast.LENGTH_SHORT).show();
                         cartItems.clear();
                         cartItems.addAll(receivedItems);
-                        Toast.makeText(this, "loadCartItems: Items added successfully", Toast.LENGTH_SHORT).show();
                         return;
-                    } else {
-                        Toast.makeText(this, "loadCartItems: Received items are null or empty", Toast.LENGTH_SHORT).show();
                     }
-                } else {
-                    Toast.makeText(this, "loadCartItems: Extra is not a List, type: " + (serializableExtra != null ? serializableExtra.getClass().getSimpleName() : "null"), Toast.LENGTH_SHORT).show();
                 }
             } catch (Exception e) {
-                Toast.makeText(this, "loadCartItems: Exception occurred: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 e.printStackTrace();
             }
-        } else {
-            Toast.makeText(this, "loadCartItems: No cart_items extra in intent", Toast.LENGTH_SHORT).show();
         }
         // Fallback to sample items if no cart items received or error occurred
-        Toast.makeText(this, "loadCartItems: Creating sample items", Toast.LENGTH_SHORT).show();
         createSampleItems();
-        Toast.makeText(this, "loadCartItems: Sample items created", Toast.LENGTH_SHORT).show();
     }
     
     private void createSampleItems() {
@@ -400,18 +368,91 @@ public class CheckoutActivity extends AppCompatActivity implements OrderSuccessF
         }
     }
     
+    private void setupCardInputFilters() {
+        // Card number: only digits, max 16 digits (no formatting)
+        etCardNumber.setFilters(new InputFilter[] {
+            new InputFilter.LengthFilter(16), // Exactly 16 digits
+            new InputFilter() {
+                @Override
+                public CharSequence filter(CharSequence source, int start, int end,
+                                         Spanned dest, int dstart, int dend) {
+                    for (int i = start; i < end; i++) {
+                        if (!Character.isDigit(source.charAt(i))) {
+                            return "";
+                        }
+                    }
+                    return null;
+                }
+            }
+        });
+        
+        // CVV: only digits, 3-4 digits
+        etCVV.setFilters(new InputFilter[] {
+            new InputFilter.LengthFilter(4),
+            new InputFilter() {
+                @Override
+                public CharSequence filter(CharSequence source, int start, int end,
+                                         Spanned dest, int dstart, int dend) {
+                    for (int i = start; i < end; i++) {
+                        if (!Character.isDigit(source.charAt(i))) {
+                            return "";
+                        }
+                    }
+                    return null;
+                }
+            }
+        });
+        
+        // Expiry date: only digits and /, max 5 characters (MM/YY)
+        etExpiryDate.setFilters(new InputFilter[] {
+            new InputFilter.LengthFilter(5),
+            new InputFilter() {
+                @Override
+                public CharSequence filter(CharSequence source, int start, int end,
+                                         Spanned dest, int dstart, int dend) {
+                    for (int i = start; i < end; i++) {
+                        char c = source.charAt(i);
+                        if (!Character.isDigit(c) && c != '/') {
+                            return "";
+                        }
+                    }
+                    return null;
+                }
+            }
+        });
+    }
+    
     private void addTextWatchers() {
-        // Card number formatting
+        // Card number - only allow digits, max 16 digits (no formatting)
         etCardNumber.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                String formatted = formatCardNumber(s.toString());
-                if (!formatted.equals(s.toString())) {
-                    etCardNumber.setText(formatted);
-                    etCardNumber.setSelection(formatted.length());
+                // Remove all non-digits
+                String digitsOnly = s.toString().replaceAll("[^0-9]", "");
+                // Limit to 16 digits
+                if (digitsOnly.length() > 16) {
+                    digitsOnly = digitsOnly.substring(0, 16);
+                }
+                // Only update if different (to avoid infinite loops)
+                if (!digitsOnly.equals(s.toString())) {
+                    int selection = etCardNumber.getSelectionStart();
+                    etCardNumber.removeTextChangedListener(this);
+                    etCardNumber.setText(digitsOnly);
+                    // Set cursor position safely
+                    if (selection > digitsOnly.length()) {
+                        selection = digitsOnly.length();
+                    }
+                    if (selection >= 0) {
+                        etCardNumber.setSelection(selection);
+                    }
+                    etCardNumber.addTextChangedListener(this);
+                }
+                // Clear error when user types
+                if (tilCardNumber != null) {
+                    tilCardNumber.setError(null);
                 }
             }
             
@@ -419,17 +460,90 @@ public class CheckoutActivity extends AppCompatActivity implements OrderSuccessF
             public void afterTextChanged(Editable s) {}
         });
         
-        // Expiry date formatting
+        // Expiry date formatting and validation
         etExpiryDate.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                String formatted = formatExpiryDate(s.toString());
+                // Remove all non-digits
+                String digitsOnly = s.toString().replaceAll("[^0-9]", "");
+                // Limit to 4 digits
+                if (digitsOnly.length() > 4) {
+                    digitsOnly = digitsOnly.substring(0, 4);
+                }
+                // Format as MM/YY
+                String formatted = formatExpiryDate(digitsOnly);
                 if (!formatted.equals(s.toString())) {
+                    int selection = etExpiryDate.getSelectionStart();
+                    etExpiryDate.removeTextChangedListener(this);
                     etExpiryDate.setText(formatted);
-                    etExpiryDate.setSelection(formatted.length());
+                    // Set cursor position safely
+                    if (selection > formatted.length()) {
+                        selection = formatted.length();
+                    }
+                    if (selection >= 0) {
+                        etExpiryDate.setSelection(selection);
+                    }
+                    etExpiryDate.addTextChangedListener(this);
+                }
+                // Validate month if we have 2 digits
+                if (digitsOnly.length() >= 2) {
+                    try {
+                        int month = Integer.parseInt(digitsOnly.substring(0, 2));
+                        if (month < 1 || month > 12) {
+                            if (tilExpiryDate != null) {
+                                tilExpiryDate.setError("Invalid month (01-12)");
+                            }
+                        } else {
+                            if (tilExpiryDate != null) {
+                                tilExpiryDate.setError(null);
+                            }
+                        }
+                    } catch (NumberFormatException e) {
+                        // Ignore parsing errors
+                    }
+                } else {
+                    if (tilExpiryDate != null) {
+                        tilExpiryDate.setError(null);
+                    }
+                }
+            }
+            
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+        
+        // CVV formatting - only allow digits
+        etCVV.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // Remove all non-digits
+                String digitsOnly = s.toString().replaceAll("[^0-9]", "");
+                // Limit to 4 digits
+                if (digitsOnly.length() > 4) {
+                    digitsOnly = digitsOnly.substring(0, 4);
+                }
+                if (!digitsOnly.equals(s.toString())) {
+                    int selection = etCVV.getSelectionStart();
+                    etCVV.removeTextChangedListener(this);
+                    etCVV.setText(digitsOnly);
+                    // Set cursor position safely
+                    if (selection > digitsOnly.length()) {
+                        selection = digitsOnly.length();
+                    }
+                    if (selection >= 0) {
+                        etCVV.setSelection(selection);
+                    }
+                    etCVV.addTextChangedListener(this);
+                }
+                // Clear error when user types
+                if (tilCVV != null) {
+                    tilCVV.setError(null);
                 }
             }
             
@@ -457,25 +571,52 @@ public class CheckoutActivity extends AppCompatActivity implements OrderSuccessF
     }
     
     private String formatCardNumber(String input) {
-        String cleaned = input.replaceAll("\\s", "");
-        StringBuilder formatted = new StringBuilder();
-        
-        for (int i = 0; i < cleaned.length() && i < 16; i++) {
-            if (i > 0 && i % 4 == 0) {
-                formatted.append(" ");
-            }
-            formatted.append(cleaned.charAt(i));
-        }
-        
-        return formatted.toString();
+        // Just return digits only, no formatting
+        return input.replaceAll("[^0-9]", "");
     }
     
     private String formatExpiryDate(String input) {
-        String cleaned = input.replaceAll("/", "");
+        // Input should already be digits only
+        String cleaned = input.replaceAll("[^0-9]", "");
         if (cleaned.length() >= 2) {
             return cleaned.substring(0, 2) + "/" + cleaned.substring(2, Math.min(4, cleaned.length()));
         }
         return cleaned;
+    }
+    
+    private boolean isValidExpiryDate(String expiryDate) {
+        if (expiryDate == null || expiryDate.trim().isEmpty()) {
+            return false;
+        }
+        
+        // Remove any non-digits
+        String cleaned = expiryDate.replaceAll("[^0-9]", "");
+        
+        // Must be exactly 4 digits
+        if (cleaned.length() != 4) {
+            return false;
+        }
+        
+        int month = Integer.parseInt(cleaned.substring(0, 2));
+        int year = Integer.parseInt(cleaned.substring(2, 4));
+        
+        // Month must be 01-12
+        if (month < 1 || month > 12) {
+            return false;
+        }
+        
+        // Year must be >= 25 (2025) or if month is 12 and year is 24, it's December 2024 which is before 12/25
+        // Minimum valid date is 12/25 (December 2025)
+        if (year < 25) {
+            return false;
+        }
+        
+        // If year is 25, month must be >= 12
+        if (year == 25 && month < 12) {
+            return false;
+        }
+        
+        return true;
     }
     
     private String formatPostalCode(String input) {
@@ -523,8 +664,6 @@ public class CheckoutActivity extends AppCompatActivity implements OrderSuccessF
     }
     
     private void updateOrderSummary() {
-        Toast.makeText(this, "updateOrderSummary: Starting", Toast.LENGTH_SHORT).show();
-        
         if (tvSubtotal != null) {
             tvSubtotal.setText(currencyFormat.format(subtotal));
         }
@@ -537,24 +676,18 @@ public class CheckoutActivity extends AppCompatActivity implements OrderSuccessF
         if (tvTotal != null) {
             tvTotal.setText(currencyFormat.format(total));
         }
-        Toast.makeText(this, "updateOrderSummary: Text views updated", Toast.LENGTH_SHORT).show();
         
         // Update order items display
         if (orderItemsContainer != null) {
-            Toast.makeText(this, "updateOrderSummary: orderItemsContainer found", Toast.LENGTH_SHORT).show();
             orderItemsContainer.removeAllViews();
             if (cartItems != null && !cartItems.isEmpty()) {
-                Toast.makeText(this, "updateOrderSummary: Processing " + cartItems.size() + " cart items", Toast.LENGTH_SHORT).show();
                 for (CartItem item : cartItems) {
                     if (item != null) {
-                        Toast.makeText(this, "updateOrderSummary: Processing item: " + item.getProductName(), Toast.LENGTH_SHORT).show();
                         View itemView = getLayoutInflater().inflate(R.layout.item_checkout_summary, orderItemsContainer, false);
-                        Toast.makeText(this, "updateOrderSummary: Layout inflated successfully", Toast.LENGTH_SHORT).show();
                         
                         TextView tvItemName = itemView.findViewById(R.id.tvItemName);
                         TextView tvItemQuantity = itemView.findViewById(R.id.tvItemQuantity);
                         TextView tvItemPrice = itemView.findViewById(R.id.tvItemPrice);
-                        Toast.makeText(this, "updateOrderSummary: TextViews found", Toast.LENGTH_SHORT).show();
                         
                         if (tvItemName != null) {
                             tvItemName.setText(item.getProductName() != null ? item.getProductName() : "Unknown Product");
@@ -565,19 +698,12 @@ public class CheckoutActivity extends AppCompatActivity implements OrderSuccessF
                         if (tvItemPrice != null) {
                             tvItemPrice.setText(currencyFormat.format(item.getTotalPrice()));
                         }
-                        Toast.makeText(this, "updateOrderSummary: TextViews populated", Toast.LENGTH_SHORT).show();
                         
                         orderItemsContainer.addView(itemView);
-                        Toast.makeText(this, "updateOrderSummary: Item view added to container", Toast.LENGTH_SHORT).show();
                     }
                 }
-            } else {
-                Toast.makeText(this, "updateOrderSummary: No cart items to display", Toast.LENGTH_SHORT).show();
             }
-        } else {
-            Toast.makeText(this, "updateOrderSummary: orderItemsContainer is null", Toast.LENGTH_SHORT).show();
         }
-        Toast.makeText(this, "updateOrderSummary: Completed successfully", Toast.LENGTH_SHORT).show();
     }
     
     private boolean validateForm() {
@@ -632,27 +758,45 @@ public class CheckoutActivity extends AppCompatActivity implements OrderSuccessF
             Toast.makeText(this, "Please select a payment method", Toast.LENGTH_SHORT).show();
             isValid = false;
         } else if (paymentMethod == R.id.rbCreditCard || paymentMethod == R.id.rbDebitCard) {
-            if (etCardNumber.getText().toString().trim().isEmpty()) {
+            // Validate card number - must be exactly 16 digits
+            String cardNumber = etCardNumber.getText().toString().trim();
+            String cardNumberDigits = cardNumber.replaceAll("[^0-9]", "");
+            if (cardNumberDigits.isEmpty()) {
                 tilCardNumber.setError("Card number is required");
+                isValid = false;
+            } else if (cardNumberDigits.length() != 16) {
+                tilCardNumber.setError("Card number must be exactly 16 digits");
                 isValid = false;
             } else {
                 tilCardNumber.setError(null);
             }
             
-            if (etExpiryDate.getText().toString().trim().isEmpty()) {
+            // Validate expiry date - must be MM/YY format and not before 12/25
+            String expiryDate = etExpiryDate.getText().toString().trim();
+            if (expiryDate.isEmpty()) {
                 tilExpiryDate.setError("Expiry date is required");
+                isValid = false;
+            } else if (!isValidExpiryDate(expiryDate)) {
+                tilExpiryDate.setError("Expiry date must be 12/25 or later (MM/YY)");
                 isValid = false;
             } else {
                 tilExpiryDate.setError(null);
             }
             
-            if (etCVV.getText().toString().trim().isEmpty()) {
+            // Validate CVV - must be 3-4 digits
+            String cvv = etCVV.getText().toString().trim();
+            String cvvDigits = cvv.replaceAll("[^0-9]", "");
+            if (cvvDigits.isEmpty()) {
                 tilCVV.setError("CVV is required");
+                isValid = false;
+            } else if (cvvDigits.length() < 3 || cvvDigits.length() > 4) {
+                tilCVV.setError("CVV must be 3-4 digits");
                 isValid = false;
             } else {
                 tilCVV.setError(null);
             }
             
+            // Validate cardholder name
             if (etCardholderName.getText().toString().trim().isEmpty()) {
                 tilCardholderName.setError("Cardholder name is required");
                 isValid = false;
@@ -737,15 +881,7 @@ public class CheckoutActivity extends AppCompatActivity implements OrderSuccessF
         try {
             String userEmail = sessionManager.getEmail();
             if (userEmail != null && !userEmail.isEmpty()) {
-                boolean success = databaseHelper.clearCart(userEmail);
-                if (success) {
-                    Toast.makeText(this, "Cart cleared successfully", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(this, "Failed to clear cart", Toast.LENGTH_SHORT).show();
-                }
-            } else {
-                // For demo purposes, just show a message
-                Toast.makeText(this, "Cart cleared (demo mode)", Toast.LENGTH_SHORT).show();
+                databaseHelper.clearCart(userEmail);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -783,12 +919,8 @@ public class CheckoutActivity extends AppCompatActivity implements OrderSuccessF
                     String cardholderName = etCardholderName.getText().toString().trim();
                     
                     // Save payment info as default
-                    boolean success = databaseHelper.savePaymentInfo(userEmail, paymentMethodStr, cardNumber, 
+                    databaseHelper.savePaymentInfo(userEmail, paymentMethodStr, cardNumber, 
                             expiryDate, cvv, cardholderName, true);
-                    
-                    if (success) {
-                        Toast.makeText(this, "Information saved for future use", Toast.LENGTH_SHORT).show();
-                    }
                 }
             }
         } catch (Exception e) {

@@ -67,8 +67,68 @@
                 android:inputType="textPassword"/>
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Password Requirements -->
+        <LinearLayout
+            android:id="@+id/layoutPasswordRequirements"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="8dp"
+            android:layout_marginStart="16dp"
+            android:visibility="gone">
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Password must contain:"
+                android:textSize="12sp"
+                android:textColor="@android:color/darker_gray"
+                android:layout_marginBottom="4dp"/>
+            
+            <TextView
+                android:id="@+id/tvReqLength"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="• At least 8 characters"
+                android:textSize="12sp"
+                android:textColor="@android:color/darker_gray"/>
+            
+            <TextView
+                android:id="@+id/tvReqUppercase"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="• One uppercase letter"
+                android:textSize="12sp"
+                android:textColor="@android:color/darker_gray"/>
+            
+            <TextView
+                android:id="@+id/tvReqLowercase"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="• One lowercase letter"
+                android:textSize="12sp"
+                android:textColor="@android:color/darker_gray"/>
+            
+            <TextView
+                android:id="@+id/tvReqNumber"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="• One number"
+                android:textSize="12sp"
+                android:textColor="@android:color/darker_gray"/>
+            
+            <TextView
+                android:id="@+id/tvReqSpecial"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="• One special character"
+                android:textSize="12sp"
+                android:textColor="@android:color/darker_gray"/>
+        </LinearLayout>
+
         <!-- Confirm password -->
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilConfirmPassword"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Confirm password"
@@ -80,6 +140,16 @@
                 android:layout_height="wrap_content"
                 android:inputType="textPassword"/>
         </com.google.android.material.textfield.TextInputLayout>
+        
+        <!-- Password Match Indicator -->
+        <TextView
+            android:id="@+id/tvPasswordMatch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginStart="16dp"
+            android:textSize="12sp"
+            android:visibility="gone"/>
 
         <!-- Terms row -->
         <LinearLayout
@@ -110,7 +180,8 @@
             android:layout_height="wrap_content"
             android:text="Create account"
             android:backgroundTint="@color/brand_primary"
-            android:layout_marginTop="16dp"/>
+            android:layout_marginTop="16dp"
+            android:enabled="false"/>
 
         <View
             android:layout_width="match_parent"
