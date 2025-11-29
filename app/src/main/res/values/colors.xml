@@ -45,12 +45,6 @@
     <color name="button_primary_dark">@color/orange_dark</color>
     <color name="button_secondary">@color/blue_bright</color>
     <color name="button_add_cart">@color/orange</color>
-    
-    <!-- Legacy Colors (keeping for compatibility) -->
-    <color name="purple_500">#9C27B0</color>
-    <color name="purple_700">#7B1FA2</color>
-    <color name="teal_200">#80CBC4</color>
-    <color name="teal_700">#00796B</color>
 
     <!-- Brand Colors -->
     <color name="brand_primary">@color/blue_dark</color>
